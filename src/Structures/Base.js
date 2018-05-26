@@ -1,0 +1,55 @@
+"use strict";
+
+class Base {
+  constructor(id) {
+    this.id = id;
+  }
+  get createdAt() {
+    return (this.id / 4194304) + 1420070400000;
+  }
+  toString() {
+    let str = "";
+    if(this.id) {
+      if(this.username) {
+        str = `<@${this.id}>`;
+      } else if(this.type && this.type !== 1 && this.type !== 3) {
+        str = `<#${this.id}>`;
+      } else if(this.color) {
+        str = `<@&${this.id}>`;
+      } else {
+        str = this.name || this.content || this.id;
+      }
+    } else if(this.username) {
+      str = this.username;
+    } else {
+      str = this.name;
+    }
+    return str;
+  }
+  toJSON(s) {
+    if(s) {
+      return {
+        id: this.id
+      };
+    }
+    let base = {};
+    for(var key in this) {
+      if(!base.hasOwnProperty(key) && this.hasOwnProperty(key) && key.indexOf("_") !== 0) {
+        if(!this[key]) {
+          base[key] = this[key];
+        } else if(this[key] instanceof Set) {
+          base[key] = Array.from(this[key]);
+        } else if(this[key] instanceof Map) {
+          base[key] = Array.from(this[key].values());
+        } else if(typeof this[key].toJSON === "function") {
+          base[key] = this[key].toJSON();
+        } else {
+          this[key] = base[key];
+        }
+      }
+    }
+    return base;
+  }
+}
+
+module.exports = Base;

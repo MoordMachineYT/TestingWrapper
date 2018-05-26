@@ -1,0 +1,34 @@
+const Base = require("./Base.js");
+const { DefaultAvatarHashes } = require("../Constants.js");
+const { CDN } = require("../Rest/Endpoints.js");
+
+class User extends Base {
+  constructor(data, client) {
+    super(data.id);
+    this._client = client;
+    this.bot = !!data.bot;
+    this.update(data);
+  }
+  update(data) {
+    this.avatar = data.avatar || this.avatar;
+    this.username = data.username || this.username;
+    this.discrim = data.discriminator || this.discrim;
+  }
+  get mention() {
+    return this.toString();
+  }
+  get tag() {
+    return this.username + "#" + this.discrim;
+  }
+  get defaultAvatar() {
+    return DefaultAvatarHashes[this.discrim % DefaultAvatarHashes.length];
+  }
+  get defaultAvatarURL() {
+    return `https://discordapp.com/assets/${this.defaultAvatar}.png`;
+  }
+  get avatarURL() {
+    return this.avatar ? `${CDN}/avatars/${this.id}/${this.avatar}.${this.avatar.startsWith("a_") ? "gif" : "png"}` : this.defaultAvatarURL;
+  }
+}
+
+module.exports = User;
