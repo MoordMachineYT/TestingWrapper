@@ -99,6 +99,15 @@ class Client extends EventEmitter {
       });
     });
   }
+  sendMessage(channelID, content) {
+    return this.send(channelID, { content });
+  }
+  sendCodeBlock(channelID, content, language) {
+    return this.send(channelID, { content: `\`\`\`${language || "js"}\n${content}\n\`\`\``});
+  }
+  sendEmbed(channelID, embed) {
+    return this.send(channelID, { embed });
+  }
   setPresence(data) {
     if(!data.status) {
       data.status = this.user.status;
