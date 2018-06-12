@@ -172,6 +172,7 @@ class Shard extends EventEmitter {
       if(this.heartbeating) {
         clearInterval(this.heartbeating);
       }
+      this.heartbeatReceived = true;
       this.heartbeating = setInterval(() => {
         this.heartbeat();
       }, this.heartbeatInterval);
