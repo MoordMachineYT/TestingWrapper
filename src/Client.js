@@ -1,9 +1,11 @@
 "use strict";
 
+const Collection = require("./Util/Collection.js");
 const Endpoints = require("./Rest/Endpoints.js");
+const Message = require("./Structures/Message.js");
 const RequestHandler = require("./Rest/RequestHandler.js");
 const ShardManager = require("./WebSocket/ShardManager.js");
-const Message = require("./Structures/Message.js");
+
 
 let EventEmitter = require("events").EventEmitter;
 
@@ -38,6 +40,9 @@ class Client extends EventEmitter {
     this.RequestHandler = new RequestHandler(this);
     this.shards = new ShardManager(this);
     this.ready = false;
+    this.guilds = new Collection();
+    this.users = new Collection();
+    this.channels = new Collection();
   }
   connect() {
     return new Promise((res, rej) => {
