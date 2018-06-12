@@ -3,6 +3,7 @@
 const Endpoints = require("./Rest/Endpoints.js");
 const RequestHandler = require("./Rest/RequestHandler.js");
 const ShardManager = require("./WebSocket/ShardManager.js");
+const Message = require("./Structures/Message.js");
 
 let EventEmitter = require("events").EventEmitter;
 
@@ -85,7 +86,11 @@ class Client extends EventEmitter {
     return new Promise((res, rej) => {
       this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
         auth: true,
-
+        data
+      }).then(msg => {
+        res(new Message(msg));
+      }).catch(err => {
+        rej(err);
       });
     });
   }
