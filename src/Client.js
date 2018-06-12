@@ -31,7 +31,7 @@ class Client extends EventEmitter {
       messageCacheLimit: 100,
       restTimeOffset: 0
     };
-    for(let i in options) {
+    for(const i in options) {
       this.options[i] = options[i];
     }
     this.RequestHandler = new RequestHandler(this);
@@ -82,8 +82,11 @@ class Client extends EventEmitter {
         content: data.valueOf()
       };
     }
-    return new Promise((res) => {
-      res("Not made yet");
+    return new Promise((res, rej) => {
+      this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
+        auth: true,
+
+      });
     });
   }
   setPresence(data) {

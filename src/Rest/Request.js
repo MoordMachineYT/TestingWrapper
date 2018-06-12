@@ -32,7 +32,8 @@ class Request {
 
     const request = snek[this.method](BASE + this.path, {
       agent,
-      headers
+      headers,
+      data: this.options.data || null
     });
     if(this.options.files) {
       for(const file of this.options.files) {
