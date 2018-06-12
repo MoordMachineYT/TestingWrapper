@@ -16,12 +16,12 @@ class Member extends Base {
     if(this.id === client.user.id) {
       this.user = client.user;
     } else if(client.users.has(this.id)) {
-      this.user = this.users.get(this.id).update(user);
+      this.user = client.users.get(this.id).update(user);
     } else {
       client.users.set(this.id, new User(data.user));
-      this.user = this.users.get(this.id);
+      this.user = client.users.get(this.id);
     }
-    this.guild = data.guild || this._client.guilds.get(data.guild_id);
+    this.guild = data.guild || client.guilds.get(data.guild_id);
     if(!this.guild) {
       throw new Error("member object created but corresponding guild not found");
     }
