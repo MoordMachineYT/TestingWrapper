@@ -283,7 +283,6 @@ class Shard extends EventEmitter {
         this.reset();
         setTimeout(() => {
           this.connect();
-          this.identify();
         }, 5000);
         break;
       }
