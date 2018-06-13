@@ -29,6 +29,9 @@ class User extends Base {
   get avatarURL() {
     return this.avatar ? `${CDN}/avatars/${this.id}/${this.avatar}.${this.avatar.startsWith("a_") ? "gif" : "png"}` : this.defaultAvatarURL;
   }
+  get guilds() {
+    return this._client.guilds.filter(g => g.members.has(this.id));
+  }
 }
 
 module.exports = User;
