@@ -56,6 +56,9 @@ class ClientUser extends User {
       game: { name, type, url },
     });
   }
+  get guilds() {
+    return this._client.guilds;
+  }
 }
 
 module.exports = ClientUser;
