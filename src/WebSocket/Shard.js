@@ -96,6 +96,7 @@ class Shard extends EventEmitter {
 
   }
   setPresence(data) {
+    data.afk = data.status === "idle";
     if(data.status === "idle") {
       data.since = Date.now();
     }
