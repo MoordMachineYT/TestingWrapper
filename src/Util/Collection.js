@@ -13,14 +13,15 @@ class Collection extends Map {
       throw new RangeError("limit reached");
     }
     super.set(key, val);
-    return this;
+    return val;
   }
   delete(key) {
     if(!this.has(key)) {
       throw new Error("key not found");
     }
+    const val = this.get(key);
     super.delete(key);
-    return this;
+    return val;
   }
   find(val1, val2) {
     if(typeof val1 === "function") {

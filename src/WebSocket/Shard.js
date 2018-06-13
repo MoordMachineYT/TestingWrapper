@@ -8,6 +8,7 @@ const { OPCodes, GatewayClose, WSError, GATEWAY_URL } = require("../Constants.js
 
 const ClientUser = require("../Structures/ClientUser.js");
 const Guild = require("../Structures/Guild.js");
+const Message = require("../Structures/Message.js");
 
 const Z_SYNC_FLUSH = Zlib.constants.Z_SYNC_FLUSH;
 Zlib = require("zlib-sync");
@@ -358,7 +359,7 @@ class Shard extends EventEmitter {
         break;
       }
       case GatewayClose.SHARDING_REQUIRED: {
-        err = new Error("Sharding required, please increase Client#options.maxShards");
+        err = new Error("Sharding required, please increase Client#options.shardCount");
         rec = false;
         break;
       }
@@ -382,9 +383,24 @@ class Shard extends EventEmitter {
       break;
     }
     case "MESSAGE_CREATE": {
+      const channel = this.client.channels.get(packet.d.channel_id);
+      if(!channel) {
+        this.debug("Message created but channel not found! OK if deleted.");
+        break;
+      }
+      const msg = new Message(packet.d);
+      this.client.emit("newMessage", channel.messages.set(msg.id, msg));
       break;
     }
     case "MESSAGE_DELETE": {
+      const channel = this.client.channels.get(packet.d.channel_id);
+      if(!channel) {
+        this.debug("Message deleted but channel not found! OK if deleted.");
+        break;
+      }
+      const msg = channel.messages.get(packet.d.id) || new Message(packet.d);
+      msg.deleted = true;
+      this.client.emit("delMessage", channel.messages.set(msg.id, msg));
       break;
     }
     case "MESSAGE_UPDATE": {
