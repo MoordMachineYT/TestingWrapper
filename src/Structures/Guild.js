@@ -10,7 +10,7 @@ class Guild extends Base {
   constructor(data, shard) {
     super(data.id);
     this.shard = shard;
-    this._client - shard.client;
+    this._client = shard.client;
     this.name = data.name;
     this.icon = data.icon || null;
     this.splash = data.splash || null;
@@ -37,6 +37,13 @@ class Guild extends Base {
     for(const member of data.members) {
       member.guild = this;
       this.members.set(member.user.id, new Member(member, shard.client));
+    }
+    
+    this.channels = new Collection();
+    for(const channel of data.channels) {
+      if(channel.type === 0) {
+        "qwerty";
+      }
     }
   }
   update(data) {

@@ -42,13 +42,13 @@ module.exports = {
     READY: "WebSocket hang up before firing ready"
   },
   /* Channel types */
-  ChannelType: {
-    GUILD_TEXT: 0,
-    DM: 1,
-    GUILD_VOICE: 2,
-    GROUP_DM: 3,
-    GUILD_CATEGORY: 4
-  },
+  ChannelType: [
+    "text",
+    "dm",
+    "voice",
+    "group",
+    "category"
+  ],
 
   /* User constants */
   DefaultAvatarHashes: [
