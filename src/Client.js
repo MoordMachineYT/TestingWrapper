@@ -54,7 +54,7 @@ class Client extends EventEmitter {
         }
         let shards;
         if(typeof this.options.shardCount === "number") {
-          shards = this.options.shardCount + 1;
+          shards = this.options.shardCount;
         } else if(this.options.shardCount === "auto") {
           shards = data.shards;
         } else {
