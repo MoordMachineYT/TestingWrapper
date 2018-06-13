@@ -404,6 +404,16 @@ class Shard extends EventEmitter {
       break;
     }
     case "MESSAGE_UPDATE": {
+      const channel = this.client.channels.get(packet.d.channel_id);
+      if(!channel) {
+        this.debug("Message updated but channel not found! OK if deleted.");
+        break;
+      }
+      const msg = channel.messages.get(packet.d.id);
+      if(!msg) {
+        break;
+      }
+      this.client.emit("updateMessage", msg, channel.messages.set(msg.update(packet.d)));
       break;
     }
     case "READY": {

@@ -88,6 +88,9 @@ class Client extends EventEmitter {
         content: data.valueOf()
       };
     }
+    if(channelID.id) {
+      channelID = channelID.id;
+    }
     return new Promise((res, rej) => {
       this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
         auth: true,
