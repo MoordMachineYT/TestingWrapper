@@ -419,6 +419,11 @@ class Shard extends EventEmitter {
     case "READY": {
       this.sessionID = packet.d.session_id;
       this.client.user = new ClientUser(packet.d.user, this.client);
+      for(const guild of packet.d.guilds) {
+        guild.available = !guild.unavailable;
+        delete guild.unavailable;
+        this.client.guilds.set(guild.id, guild);
+      }
       setTimeout(() => {
         this.status = "ready";
         this.emit("ready");
