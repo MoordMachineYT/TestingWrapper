@@ -49,6 +49,7 @@ class Guild extends Base {
     
     this.channels = new Collection();
     for(const channel of data.channels) {
+      channel.guild_id = this.id;
       if(channel.type === 0) {
         this._client.channels.set(channel.id, this.channels.set(channel.id, new TextChannel(channel, this._client)));
       } else if(channel.type === 2) {
