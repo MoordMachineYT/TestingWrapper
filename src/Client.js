@@ -96,7 +96,7 @@ class Client extends EventEmitter {
         auth: true,
         data
       }).then(msg => {
-        res(new Message(msg));
+        res(new Message(msg, this));
       }).catch(err => {
         rej(err);
       });
