@@ -389,7 +389,7 @@ class Shard extends EventEmitter {
         break;
       }
       const msg = new Message(packet.d, this.client);
-      this.client.emit("newMessage", channel.messages.set(msg.id, msg));
+      this.client.emit("message", channel.messages.set(msg.id, msg));
       break;
     }
     case "MESSAGE_DELETE": {
@@ -400,7 +400,7 @@ class Shard extends EventEmitter {
       }
       const msg = channel.messages.get(packet.d.id) || new Message(packet.d, this.client);
       msg.deleted = true;
-      this.client.emit("delMessage", channel.messages.set(msg.id, msg));
+      this.client.emit("messageDelete", channel.messages.set(msg.id, msg));
       break;
     }
     case "MESSAGE_UPDATE": {
@@ -413,7 +413,7 @@ class Shard extends EventEmitter {
       if(!msg) {
         break;
       }
-      this.client.emit("updateMessage", msg, channel.messages.set(msg.update(packet.d)));
+      this.client.emit("messageUpdate", msg, channel.messages.set(msg.update(packet.d)));
       break;
     }
     case "READY": {
