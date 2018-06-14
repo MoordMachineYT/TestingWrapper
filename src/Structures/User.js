@@ -1,3 +1,5 @@
+"use strict";
+
 const Base = require("./Base.js");
 const { DefaultAvatarHashes } = require("../Constants.js");
 const { CDN } = require("../Rest/Endpoints.js");
@@ -6,6 +8,7 @@ class User extends Base {
   constructor(data, client) {
     super(data.id);
     this._client = client;
+    this._raw = data;
     this.bot = !!data.bot;
     this.update(data);
   }

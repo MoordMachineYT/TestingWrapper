@@ -10,16 +10,13 @@ class ClientUser extends User {
     this.mfa = !!data.mfa_enabled;
   }
   setPresence(data) {
-    return this.client.presences.setclientpresence(data);
+    return this._client.setPresence(data);
   }
   setStatus(status) {
     return this.setPresence({ status });
   }
-  setActivity(name, { type = 0, url } = {}) {
-    if (!name) return this.setPresence({ activity: null });
-    return this.setPresence({
-      game: { name, type, url },
-    });
+  setActivity(game) {
+    return this.setPresence({ game });
   }
   get guilds() {
     return this._client.guilds;
