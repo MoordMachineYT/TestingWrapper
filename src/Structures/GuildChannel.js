@@ -10,7 +10,7 @@ class GuildChannel extends Channel {
     this.parentID = data.parent_id;
   }
   get guild() {
-    return this.guilds.get(this.guildID);
+    return this._client.guilds.get(this.guildID);
   }
 }
 
