@@ -388,7 +388,7 @@ class Shard extends EventEmitter {
         this.debug("Message created but channel not found! OK if deleted.");
         break;
       }
-      const msg = new Message(packet.d);
+      const msg = new Message(packet.d, this.client);
       this.client.emit("newMessage", channel.messages.set(msg.id, msg));
       break;
     }
@@ -398,7 +398,7 @@ class Shard extends EventEmitter {
         this.debug("Message deleted but channel not found! OK if deleted.");
         break;
       }
-      const msg = channel.messages.get(packet.d.id) || new Message(packet.d);
+      const msg = channel.messages.get(packet.d.id) || new Message(packet.d, this.client);
       msg.deleted = true;
       this.client.emit("delMessage", channel.messages.set(msg.id, msg));
       break;
