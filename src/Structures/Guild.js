@@ -38,8 +38,6 @@ class Guild extends Base {
       this.roles.set(r.id, new Role(r));
     }
 
-    this._roles = Array.from(this.roles.keys());
-
     this.members = new Collection();
 
     for(const member of data.members) {

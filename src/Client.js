@@ -48,7 +48,7 @@ class Client extends EventEmitter {
     return new Promise((res, rej) => {
       this.RequestHandler.request("get", Endpoints.GATEWAY_BOT, {
         auth: true
-      }).then(data => {
+      }).then((data) => {
         if(this.options.shardCount === "auto" && !data.shards) {
           throw new Error("Failed to autoshard due to lack of data from Discord");
         }
@@ -71,7 +71,7 @@ class Client extends EventEmitter {
         }
         data.shards = shards;
         res(data);
-      }).catch(err => {
+      }).catch((err) => {
         rej(err);
       });
     });
@@ -91,13 +91,19 @@ class Client extends EventEmitter {
     if(channelID.id) {
       channelID = channelID.id;
     }
+    const noEveryone = data.disableEveryone instanceof Boolean ? data.disableEveryone : !!this.options.disableEveryone;
+    if(noEveryone) {
+      if(data.content) {
+        data.content = data.content.replace(/@everyone/g, "@\u200beveryone").replace(/@here/g, "@\u200bhere");
+      }
+    }
     return new Promise((res, rej) => {
       this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
         auth: true,
         data
-      }).then(msg => {
+      }).then((msg) => {
         res(new Message(msg, this));
-      }).catch(err => {
+      }).catch((err) => {
         rej(err);
       });
     });
@@ -122,6 +128,42 @@ class Client extends EventEmitter {
       shard.setPresence(data);
     });
     Promise.resolve(data);
+  }
+  deleteMessage(channelID, message) {
+    if(channelID.id) {
+      channelID = channelID.id;
+    }
+    if(message.id) {
+      message = message.id;
+    }
+    return new Promise((res, rej) => {
+      this.RequestHandler.request("delete", Endpoints.CHANNEL_MESSAGE(channelID, message), {
+        auth: true
+      }).then((msg) => {
+        msg = new Message(msg, this);
+        msg.deleted = true;
+        res(msg);
+      }).catch((err) => {
+        rej(err);
+      });
+    });
+  }
+  deleteMessages(channelID, messages) {
+    if(channelID.id) {
+      channelID = channelID.id;
+    }
+    if(Array.isArray(messages)) {
+      messages = messages.map(msg => msg.id || msg);
+    }
+    if(messages instanceof Collection) {
+      messages = messages.keyArray;
+    }
+    return new Promise((res, rej) => {
+      this.RequestHandler.request("delete", Endpoints.CHANNEL_BULK_DELETE(channelID), {
+        auth: true,
+        data: messages
+      }).then(() => res()).catch((err) => rej(err));
+    });
   }
 }
 

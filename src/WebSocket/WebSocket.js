@@ -29,7 +29,9 @@ exports.unpack = function(data) {
 };
 exports.create = function(gateway = "", encoding) {
   let [g, e] = gateway.split("?");
-  if(!g) g = GATEWAY_URL;
+  if(!g) {
+    g = GATEWAY_URL;
+  }
   let ws;
   if(!e) {
     ws = new exports.WebSocket(`${g}?v=${GATEWAY_VERSION}&encoding=${encoding || (Erlpack ? "etf" : "json")}&compress=zlib-stream`);

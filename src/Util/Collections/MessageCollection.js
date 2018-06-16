@@ -3,9 +3,10 @@ const Endpoints = require("../../Rest/Endpoints.js");
 const Message = require("../../Structures/Message.js");
 
 class MessageCollection extends Collection {
-  constructor(client, base, limit) {
+  constructor(client, channelID, base, limit) {
     super(base, limit);
     this._client = client;
+    this.channelID = channelID;
   }
   set(key, val) {
     if(this.size >= this.limit) {
@@ -42,6 +43,27 @@ class MessageCollection extends Collection {
         }
       }
     });
+  }
+  send(data) {
+    return this._client.send(this.channelID, data);
+  }
+  sendMessage(content) {
+    return this._client.send(this.channelID, { content });
+  }
+  sendEmbed(embed) {
+    return this._client.send(this.channelID, { embed });
+  }
+  sendCodeBlock(content, language) {
+    return this._client.sendCodeBlock(this.channelID, content, language);
+  }
+  delete(resolvable) {
+    if(resolvable instanceof Message) {
+      resolvable = resolvable.id;
+    }
+    
+  }
+  get channel() {
+    return this._client.channels.get(this.channelID);
   }
 }
 

@@ -180,28 +180,28 @@ class Collection extends Map {
     return new this.constructor(this);
   }
   get first() {
-    return Array.from(this.values())[0];
+    return this.array[0];
   }
   get firstKey() {
-    return Array.from(this.keys())[0];
+    return this.keyArray[0];
   }
   get last() {
-    return Array.from(this.values())[this.size - 1];
+    return this.array[this.size - 1];
   }
   get lastKey() {
-    return Array.from(this.keys())[this.size - 1];
+    return this.keyArray[this.size - 1];
   }
   get random() {
-    return Array.from(this.values())[~~(Math.random() * this.size)];
+    return this.array.random();
   }
   get randomKey() {
-    return Array.from(this.keys())[~~(Math.random() * this.size)];
+    return this.keyArray.random();
   }
   get array() {
-    return Array.from(this.values());
+    return this.values().array();
   }
   get keyArray() {
-    return Array.from(this.keys());
+    return this.values().array();
   }
 }
 

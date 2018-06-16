@@ -1,14 +1,10 @@
 "use strict";
 
-const Logger = require("./Logger.js");
-
 class Limiter {
-  constructor(limit, interval, ref, log) {
+  constructor(limit, interval, ref) {
     this.limit = limit;
     this.interval = interval;
     this.ref = ref == 1 || !ref ? this.limit : ref;
-    this.log = !!log;
-    this.logMessage = log;
 
     this.list = [];
 
@@ -38,9 +34,6 @@ class Limiter {
       this.limited = true;
       this.used = 0;
       const xs = 1 / ((this.interval / this.limit) / 1000 * 2);
-      if (this.log) {
-        Logger.logWarning(this.logMessage.replace("x/s", `${xs.toFixed(2)} messages per second`).replace("s*qwe", `${((1/xs) * this.ref).toFixed(2)} seconds`));
-      }
       this.timeout = setTimeout(() => {
         this.timeout = null;
         this.list.shift()();

@@ -34,7 +34,7 @@ class Base {
     }
     let base = {};
     for(var key in this) {
-      if(!base.hasOwnProperty(key) && this.hasOwnProperty(key) && key.indexOf("_") !== 0) {
+      if(!base.hasOwnProperty(key) && this.hasOwnProperty(key) && key.indexOf("_") !== 0 && key !== "client") {
         if(!this[key]) {
           base[key] = this[key];
         } else if(this[key] instanceof Set) {
