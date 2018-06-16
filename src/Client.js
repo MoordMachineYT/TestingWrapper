@@ -140,7 +140,10 @@ class Client extends EventEmitter {
       this.RequestHandler.request("delete", Endpoints.CHANNEL_MESSAGE(channelID, message), {
         auth: true
       }).then((msg) => {
-        msg = new Message(msg, this);
+        msg = this.channels.get(channelID).messages.get(msg.id);
+        if(!msg) {
+          res(null);
+        }
         msg.deleted = true;
         res(msg);
       }).catch((err) => {
