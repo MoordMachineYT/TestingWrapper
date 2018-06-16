@@ -54,7 +54,7 @@ class Message extends Base {
     var matches;
     if(this.content) {
       matches = this.content.match(/<#(\d{17,19})>/g);
-      for(const key of matches) {
+      for(const key of matches || []) {
         if(!this.channelMentions.has(key) && this._client.channels.has(key)) {
           this.channelMentions.set(key, this._client.channels.get(key));
         }
