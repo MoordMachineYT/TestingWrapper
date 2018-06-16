@@ -403,7 +403,7 @@ class Shard extends EventEmitter {
         break;
       }
       msg.deleted = true;
-      this.client.emit("messageDelete", channel.messages.set(msg.id, msg));
+      this.client.emit("messageDelete", channel.messages.delete(msg.id));
       break;
     }
     case "MESSAGE_UPDATE": {
