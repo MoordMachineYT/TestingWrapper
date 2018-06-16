@@ -398,7 +398,10 @@ class Shard extends EventEmitter {
         this.debug("Message deleted but channel not found! OK if deleted.");
         break;
       }
-      const msg = channel.messages.get(packet.d.id) || new Message(packet.d, this.client);
+      const msg = channel.messages.get(packet.d.id);
+      if(!msg) {
+        break;
+      }
       msg.deleted = true;
       this.client.emit("messageDelete", channel.messages.set(msg.id, msg));
       break;
