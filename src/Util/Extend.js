@@ -4,6 +4,17 @@ function extend() {
   if(new.target) {
     throw new Error("extend can not be instantiated");
   }
+
+  /* Object */
+  Object.defineProperty(Object.prototype, "size", {
+    get: function() {
+      return Object.keys(this).length;
+    }
+  });
+  Object.prototype.array = function() {
+    return Object.values(this);
+  };
+
   /* String */
   String.prototype.array = function() {
     return this.split("");

@@ -388,8 +388,12 @@ class Shard extends EventEmitter {
         this.debug("Message created but channel not found! OK if deleted.");
         break;
       }
+      if(packet.d.member) {
+        packet.d.member.user = packet.d.author;
+      }
       const msg = new Message(packet.d, this.client);
       this.client.emit("message", channel.messages.set(msg.id, msg));
+      this.client.channels.set(channel.id, channel); // Caching system doesn't work otherwise
       break;
     }
     case "MESSAGE_DELETE": {
@@ -404,6 +408,7 @@ class Shard extends EventEmitter {
       }
       msg.deleted = true;
       this.client.emit("messageDelete", channel.messages.set(msg.id, msg));
+      this.client.channels.set(channel.id, channel);
       break;
     }
     case "MESSAGE_UPDATE": {
@@ -416,7 +421,8 @@ class Shard extends EventEmitter {
       if(!msg) {
         break;
       }
-      this.client.emit("messageUpdate", msg, channel.messages.set(msg.update(packet.d)));
+      this.client.emit("messageUpdate", msg, channel.messages.set(msg.id, msg.update(packet.d)));
+      this.client.channels.set(channel.id, channel);
       break;
     }
     case "READY": {
