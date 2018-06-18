@@ -8,10 +8,10 @@ class ClientChannelCollection extends Collection {
     this._client = client;
   }
   set(key, val) {
-    if(val.guild) {
+    if(this.has(key) && val.guild) {
       val.guild.channels.set(key, val);
     }
-    super.set(key, val);
+    return super.set(key, val);
   }
   delete(key) {
     const val = this.get(key);

@@ -1,6 +1,7 @@
 "use strict";
 
 const ClientChannelCollection = require("./Util/Collections/ClientChannelCollection.js");
+const ClientGuildCollection = require("./Util/Collections/ClientGuildCollection.js");
 const Collection = require("./Util/Collection.js");
 const Endpoints = require("./Rest/Endpoints.js");
 const Message = require("./Structures/Message.js");
@@ -41,7 +42,7 @@ class Client extends EventEmitter {
     this.RequestHandler = new RequestHandler(this);
     this.shards = new ShardManager(this);
     this.ready = false;
-    this.guilds = new Collection();
+    this.guilds = new ClientGuildCollection(this);
     this.users = new Collection();
     this.channels = new ClientChannelCollection(this);
   }

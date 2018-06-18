@@ -82,8 +82,9 @@ class Collection extends Map {
     if(thisArg) {
       fn = fn.bind(thisArg);
     }
+    var i = 0;
     for(const [key, val] of this.entries()) {
-      arr.push(fn(val, key));
+      arr[i++] = fn(val, key);
     }
     return arr;
   }
@@ -201,7 +202,7 @@ class Collection extends Map {
     return this.values().array();
   }
   get keyArray() {
-    return this.values().array();
+    return this.keys().array();
   }
 }
 

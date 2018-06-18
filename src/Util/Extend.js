@@ -6,11 +6,11 @@ function extend() {
   }
 
   /* Object */
-  /*Object.defineProperty(Object.prototype, "size", {
+  Object.defineProperty(Object.prototype, "size", {
     get: function() {
       return Object.keys(this).length;
     }
-  });*/
+  });
   Object.prototype.array = function() {
     return Object.values(this);
   };

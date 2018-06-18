@@ -26,6 +26,8 @@ class Guild extends Base {
     this.verification = data.verification_level;
     this.messageNotifications = data.default_message_notifications;
     this.large = data.large;
+    this.lazy = data.lazy;
+    this.explicitContentFilter = data.explicit_content_filter;
     this.mfaLevel = data.mfa_level;
     this.available = !data.unavailable;
     this.memberCount = data.member_count;
@@ -60,10 +62,12 @@ class Guild extends Base {
     }
   }
   update(data) {
-    this.ownerID = data.owner_id;
-    this.features = data.features;
+    this.ownerID = data.owner_id || this.ownerID;
+    this.features = data.features || this.features;
     this.available = !data.unavailable;
-    this.large = data.large;
+    this.lazy = data.hasOwnProperty("lazy") ? data.lazy : this.lazy;
+    this.large = data.hasOwnProperty("large") ? data.large : this.large;
+    this.explicit_content_filter = data.hasOwnProperty("explicit_content_filter") ? data.explicit_content_filter : this.explicitContentFilter;
     for(const member of data.members) {
       this.members.get(member.user.id).update(member);
     }

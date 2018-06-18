@@ -1,3 +1,5 @@
+"use strict";
+
 const Collection = require("../Collection.js");
 const Endpoints = require("../../Rest/Endpoints.js");
 const Message = require("../../Structures/Message.js");
