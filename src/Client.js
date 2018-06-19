@@ -26,8 +26,10 @@ class Client extends EventEmitter {
         afk: false,
         game: null
       },
+      disableEveryone: true,
       disableEvents: [],
       firstShardID: 0,
+      lastShardID: 0,
       getAllMembers: false,
       guildCreateTimeout: 200,
       largeThreshold: 250,
@@ -39,6 +41,7 @@ class Client extends EventEmitter {
     for(const i in options) {
       this.options[i] = options[i];
     }
+    this.options.shardSpawnTimeout = Math.max(this.options.shardSpawnTimeout, 5000); // Must be at least 5000
     this.RequestHandler = new RequestHandler(this);
     this.shards = new ShardManager(this);
     this.ready = false;
@@ -65,10 +68,9 @@ class Client extends EventEmitter {
         if(shards !== 1) {
           this.recShard = shards;
         }
-        for(let i = 0, y = this.options.firstShardID; i < shards; i++, y++) {
-          y %= shards;
+        for(let i = this.options.firstShardID || 0; i < this.options.lastShardID || shards; i++) {
           setTimeout(() => {
-            this.shards.spawn(data.gateway_url, y);
+            this.shards.spawn(data.gateway_url, i);
           }, this.options.shardSpawnTimeout*i);
         }
         data.shards = shards;
@@ -162,6 +164,19 @@ class Client extends EventEmitter {
     }
     if(messages instanceof Collection) {
       messages = messages.keyArray;
+    }
+    if(messages.length > 100) {
+      var reject = false;
+      for(let i = 0; i < messages.length; i += 100) {
+        this.deleteMessages(channelID, messages.slice(i, i + 100)).catch(err => {
+          reject = err;
+          break;
+        });
+      }
+      if(reject) {
+        return Promise.reject(reject);
+      }
+      return Promise.resolve();
     }
     return new Promise((res, rej) => {
       this.RequestHandler.request("delete", Endpoints.CHANNEL_BULK_DELETE(channelID), {

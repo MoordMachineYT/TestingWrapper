@@ -48,8 +48,8 @@ class Shard extends EventEmitter {
     this.status = "disconnected";
     this.heartbeat(-1);
     if(!this.globalqueue && !this.presencequeue) {
-      this.globalqueue = new Limiter(120, 60000, 30, "You are being rate limited, x/s, for the upcoming s*qwe.");
-      this.presencequeue = new Limiter(5, 60000, 0, false);
+      this.globalqueue = new Limiter(120, 60000, 30);
+      this.presencequeue = new Limiter(5, 60000, 0);
     } else {
       this.globalqueue.clear();
       this.presencequeue.clear();
@@ -89,6 +89,7 @@ class Shard extends EventEmitter {
       this.debug(new Error(WSError.CLOSED));
       return;
     }
+    this.ws.onclose = undefined;
     this.ws.terminate();
     this.ws = null;
     this.status = "disconnected";
@@ -98,7 +99,7 @@ class Shard extends EventEmitter {
   }
   setPresence(data) {
     data.afk = data.status === "idle";
-    if(data.status === "idle") {
+    if(data.afk) {
       data.since = Date.now();
     }
     this.send({
@@ -255,6 +256,7 @@ class Shard extends EventEmitter {
         packet = WebSocket.unpack(this.inflate.result);
       } catch(err) {
         this.debug(err);
+        return;
       }
       if(this.client.listenerCount("rawWS")) {
         this.client.emit("rawWS", packet, this.id);
