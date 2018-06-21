@@ -68,7 +68,7 @@ class Client extends EventEmitter {
         if(shards !== 1) {
           this.recShard = shards;
         }
-        for(let i = this.options.firstShardID || 0; i < this.options.lastShardID || shards; i++) {
+        for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || shards); i++) {
           setTimeout(() => {
             this.shards.spawn(data.gateway_url, i);
           }, this.options.shardSpawnTimeout*i);
