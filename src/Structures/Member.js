@@ -34,13 +34,14 @@ class Member extends Base {
     this.roles = data.roles.map(r => this.guild.roles.get(r));
   }
   calculateBasePermissions(roles) {
-    let permissions = 0;
+    var permissions = 0;
     for(let role of roles) {
       role = this.guild.roles.get(role);
       permissions |= role.permissions;
-    }
-    if(permissions & 8 === 8) {
-      permissions = 0b1111111111101111111110011111111;
+      if(permissions & 8 === 8) {
+        permissions = 0b1111111111101111111110011111111;
+        break;
+      }
     }
     return permissions;
   }

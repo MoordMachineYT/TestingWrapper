@@ -5,6 +5,9 @@ const Collection = require("./Collection.js");
 class Permissions extends Collection {
   constructor(num) {
     super();
+    if(num & 8 === 8) {
+      num = 0b1111111111101111111110011111111;
+    }
     if(num >= (1 << 30)) {
       this.set("manageEmojis", true);
       num -= (1 << 30);
@@ -117,6 +120,15 @@ class Permissions extends Collection {
       this.set("createInstantInvite", true);
       num -= (1 << 0);
     }
+  }
+  has(key) {
+    return this.get(key) || false;
+  }
+  toJSON() {
+    return this.json;
+  }
+  get json() {
+    return this.values.array();
   }
 }
 

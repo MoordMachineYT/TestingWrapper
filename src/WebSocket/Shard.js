@@ -9,6 +9,7 @@ const { OPCodes, GatewayClose, WSError, GATEWAY_URL } = require("../Constants.js
 const ClientUser = require("../Structures/ClientUser.js");
 const Guild = require("../Structures/Guild.js");
 const Message = require("../Structures/Message.js");
+const UnavailableGuild = require("../Structures/UnavailableGuild.js");
 
 const Z_SYNC_FLUSH = Zlib.constants.Z_SYNC_FLUSH;
 Zlib = require("zlib-sync");
@@ -48,7 +49,7 @@ class Shard extends EventEmitter {
     this.status = "disconnected";
     this.heartbeat(-1);
     if(!this.globalqueue && !this.presencequeue) {
-      this.globalqueue = new Limiter(120, 60000, 30);
+      this.globalqueue = new Limiter(120, 60000, 60);
       this.presencequeue = new Limiter(5, 60000, 0);
     } else {
       this.globalqueue.clear();
@@ -108,7 +109,7 @@ class Shard extends EventEmitter {
     });
   }
   connect(gateway) {
-    if(this.ws && this.status === "connected") {
+    if(this.ws && this.status !== "disconnected") {
       this.debug(new Error(WSError.EXISTS));
       return;
     }
@@ -429,13 +430,12 @@ class Shard extends EventEmitter {
     }
     case "READY": {
       this.sessionID = packet.d.session_id;
+      this.guildCount = packet.d.guilds.length;
       this.client.user = new ClientUser(packet.d.user, this.client);
       for(const guild of packet.d.guilds) {
-        guild.available = !guild.unavailable;
-        delete guild.unavailable;
-        this.client.guilds.set(guild.id, guild);
+        this.client.guilds.set(guild.id, new UnavailableGuild(guild));
       }
-      setTimeout(() => {
+      this.guildCreateTimeout = setTimeout(() => {
         this.status = "ready";
         this.emit("ready");
       }, this.client.options.guildCreateTimeout);
@@ -446,6 +446,12 @@ class Shard extends EventEmitter {
       const guild = new Guild(packet.d, this);
       this.client.guilds.set(packet.d.id, guild);
       if(this.status !== "ready") {
+        if(this.guildCount === this.client.guilds.size) {
+          clearTimeout(this.guildCreateTimeout);
+          delete this.guildCreateTimeout;
+          this.status = "ready";
+          this.emit("ready");
+        }
         break;
       }
       this.client.emit(available ? "guildCreate" : "guildAvailable", guild);
@@ -459,7 +465,7 @@ class Shard extends EventEmitter {
       }
       if(packet.d.unavailable) {
         guild.available = false;
-        this.client.guilds.set(packet.d.id, guild);
+        this.client.guilds.set(packet.d.id, new UnavailableGuild(packet.d));
         this.client.emit("guildUnavailable", guild);
         break;
       }
