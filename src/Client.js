@@ -37,7 +37,8 @@ class Client extends EventEmitter {
       shardCount: "auto",
       shardSpawnTimeout: 5000,
       messageCacheLimit: 100,
-      restTimeOffset: 0
+      restTimeOffset: 0,
+      ws: {}
     };
     for(const i in options) {
       this.options[i] = options[i];

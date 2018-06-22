@@ -124,7 +124,7 @@ class Shard extends EventEmitter {
     if(gateway) {
       this.gateway = gateway;
     }
-    this.ws = WebSocket.create(this.gateway, Erlpack ? "etf" : "json");
+    this.ws = WebSocket.create(this.gateway, Erlpack ? "etf" : "json", this.client.options.ws);
     this.ws.onopen = this.onOpen.bind(this);
     this.ws.onmessage = this.onMessage.bind(this);
     this.ws.onclose = this.onClose.bind(this);

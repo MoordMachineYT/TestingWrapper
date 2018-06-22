@@ -27,16 +27,16 @@ exports.unpack = function(data) {
   if(!(data instanceof Buffer)) data = Buffer.from(new Uint8Array(data));
   return Erlpack.unpack(data);
 };
-exports.create = function(gateway = "", encoding) {
+exports.create = function(gateway = "", encoding, wsOptions) {
   let [g, e] = gateway.split("?");
   if(!g) {
     g = GATEWAY_URL;
   }
   let ws;
   if(!e) {
-    ws = new exports.WebSocket(`${g}?v=${GATEWAY_VERSION}&encoding=${encoding || (Erlpack ? "etf" : "json")}&compress=zlib-stream`);
+    ws = new exports.WebSocket(`${g}?v=${GATEWAY_VERSION}&encoding=${encoding || (Erlpack ? "etf" : "json")}&compress=zlib-stream`, wsOptions);
   } else {
-    ws = new exports.WebSocket(`${g}?${e}`);
+    ws = new exports.WebSocket(`${g}?${e}`, wsOptions);
   }
   return ws;
 };
