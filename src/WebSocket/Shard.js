@@ -524,11 +524,11 @@ class Shard extends EventEmitter {
       });
       return;
     }
-    for(const guild of this.client.guilds.filter(g => g.shard.id === this.id)) {
+    for(const id of this.client.guilds.filter(g => g.shard.id === this.id).keyArray) {
       this.send({
         "op": OPCodes.REQUEST_GUILD_MEMBERS,
         "d": {
-          guild_id: guild.id,
+          guild_id: id,
           query: "",
           limit: 0
         }
