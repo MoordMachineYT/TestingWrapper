@@ -8,6 +8,7 @@ const { OPCodes, GatewayClose, WSError, GATEWAY_URL } = require("../Constants.js
 
 const ClientUser = require("../Structures/ClientUser.js");
 const Guild = require("../Structures/Guild.js");
+const Member = require("../Structures/Member.js");
 const Message = require("../Structures/Message.js");
 const UnavailableGuild = require("../Structures/UnavailableGuild.js");
 
@@ -48,11 +49,11 @@ class Shard extends EventEmitter {
     this.ws = null;
     this.status = "disconnected";
     this.guildCount = null;
-    this.guildCreateTimeout = undefined;
+
     this.heartbeat(-1);
     if(!this.globalqueue && !this.presencequeue) {
       this.globalqueue = new Limiter(120, 60000, 60);
-      this.presencequeue = new Limiter(5, 60000, 0);
+      this.presencequeue = new Limiter(5, 60000, 5);
     } else {
       this.globalqueue.clear();
       this.presencequeue.clear();
@@ -439,7 +440,11 @@ class Shard extends EventEmitter {
       }
       this.guildCreateTimeout = setTimeout(() => {
         this.status = "ready";
-        this.emit("ready");
+        if(!this.client.options.getAllMembers) {
+          this.emit("ready");
+        } else {
+          this.getAllMembers();
+        }
       }, this.client.options.guildCreateTimeout);
       break;
     }
@@ -452,9 +457,16 @@ class Shard extends EventEmitter {
           clearTimeout(this.guildCreateTimeout);
           delete this.guildCreateTimeout;
           this.status = "ready";
-          this.emit("ready");
+          if(this.client.options.getAllMembers) {
+            this.getAllMembers();
+          } else {
+            this.emit("ready");
+          }
         }
         break;
+      }
+      if(this.client.options.getAllMembers) {
+
       }
       this.client.emit(available ? "guildCreate" : "guildAvailable", guild);
       break;
@@ -473,6 +485,21 @@ class Shard extends EventEmitter {
       }
       this.client.guilds.delete(packet.d.id);
       this.client.emit("guildDelete", guild);
+      break;
+    }
+    case "GUILD_MEMBERS_CHUNK": {
+      let guild = this.client.guilds.get(packet.d.guild_id);
+      if(!guild) {
+        this.debug(new Error("GUILD_MEMBERS_CHUNK event received but guild not found"));
+      }
+      for(const member of packet.d.members) {
+        member.guild = guild;
+        guild.members.set(member.user.id, new Member(member, this.client));
+      }
+      this.client.guilds.set(guild.id, guild);
+      if(this.client.guilds.every(g => g.memberCount === g.members.size)) {
+        this.emit("ready");
+      }
       break;
     }
     default: {

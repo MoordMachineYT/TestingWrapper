@@ -17,6 +17,18 @@ class User extends Base {
     this.username = data.username || this.username;
     this.discrim = data.discriminator || this.discrim;
   }
+  send(channelID, data) {
+    return this._client.send(channelID, data);
+  }
+  sendMessage(channelID, content) {
+    return this._client.send(channelID, { content });
+  }
+  sendCodeBlock(channelID, content) {
+    return this._client.sendCodeBlock(channelID, content);
+  }
+  sendEmbed(channelID, embed) {
+    return this._client.send(channelID, { embed });
+  }
   get mention() {
     return this.toString();
   }
