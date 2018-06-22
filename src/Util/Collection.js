@@ -116,7 +116,7 @@ class Collection extends Map {
   }
   reduce(fn, initVal) {
     let acc;
-    if(initVal) {
+    if(typeof initVal !== "undefined") {
       acc = initVal;
       for(const [key, val] of this.entries()) {
         acc = fn(acc, val, key, this);
