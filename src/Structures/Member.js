@@ -31,23 +31,13 @@ class Member extends Base {
   }
   update(data) {
     this.user.update(data.user);
-    this.permission = new Permissions(this.calculateBasePermissions(data.roles));
     this.roles = data.roles.map(r => this.guild.roles.get(r));
-  }
-  calculateBasePermissions(roles) {
-    var permissions = 0;
-    for(let role of roles) {
-      role = this.guild.roles.get(role);
-      permissions |= role.permissions;
-      if(permissions & 8 === 8) {
-        permissions = 0b1111111111101111111110011111111;
-        break;
-      }
-    }
-    return permissions;
   }
   get username() {
     return this.user.username;
+  }
+  get permission() {
+    return new Permissions(this.roles.reduce((acc, val) => acc | val.permissions, 0));
   }
 }
 
