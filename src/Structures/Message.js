@@ -23,7 +23,7 @@ class Message extends Base {
       this.sender = {};
     }
     this.channel = this._client.channels.get(data.channel_id);
-    this.member = this.channel.guild && this.sender.id ? this.channel.guild.member(this.sender.id) || this.channel.guild.members.set(this.sender.id, new Member(data.member, this._client)) : null;
+    this.member = this.channel.guild && this.sender.id ? this.channel.guild.member(this.sender.id) || this.channel.guild.members.set(this.sender.id, new Member(data.member, client)) : null;
     this.webhookID = data.webhook_id || null;
     this.deleted = false;
     this.embeds = data.embeds;
