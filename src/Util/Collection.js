@@ -5,6 +5,9 @@ class Collection extends Map {
     super(base);
     this.limit = limit || Infinity;
   }
+  get(key) {
+    return super.get(key) || null;
+  }
   set(key, val = null) {
     if(typeof key === "undefined") {
       throw new TypeError("key must have a value");
