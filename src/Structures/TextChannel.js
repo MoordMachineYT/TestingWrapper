@@ -12,6 +12,18 @@ class TextChannel extends GuildChannel {
     this.lastMessageID = data.last_message_id;
     this.lastPinTimestamp = data.last_pin_timestamp;
   }
+  send(data) {
+    return this._client.send(this.id, data);
+  }
+  sendMessage(content) {
+    return this._client.send(this.id, { content });
+  }
+  sendEmbed(embed) {
+    return this._client.send(this.id, { embed });
+  }
+  sendCodeBlock(content) {
+    return this._client.sendCodeBlock(this.id, content);
+  }
 }
 
 module.exports = TextChannel;

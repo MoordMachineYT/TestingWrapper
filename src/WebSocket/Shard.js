@@ -480,6 +480,7 @@ class Shard extends EventEmitter {
       }
       if(packet.d.unavailable) {
         guild.available = false;
+        guild.shard = this;
         this.client.guilds.set(packet.d.id, new UnavailableGuild(packet.d));
         this.client.emit("guildUnavailable", guild);
         break;
