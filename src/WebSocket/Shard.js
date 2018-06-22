@@ -480,6 +480,32 @@ class Shard extends EventEmitter {
     }
     }
   }
+  getAllMembers(options) {
+    if(!this.ws) {
+      return;
+    }
+    if(options) {
+      this.send({
+        "op": OPCodes.REQUEST_GUILD_MEMBERS,
+        "d": {
+          guild_id: options.guildID,
+          query: options.query || "",
+          limit: options.limit || 0
+        }
+      });
+      return;
+    }
+    for(const { id } of this.client.guilds.filter(g => g.shard.id === this.id)) {
+      this.send({
+        "op": OPCodes.REQUEST_GUILD_MEMBERS,
+        "d": {
+          guild_id: id,
+          query: "",
+          limit: 0
+        }
+      });
+    }
+  }
   debug(val) {
     if (!val) {
       return;
