@@ -4,7 +4,7 @@ const Collection = require("../Collection.js");
 
 class ClientUserCollection extends Collection {
   constructor() {
-    super(undefined, limit);
+    super(undefined, Infinity);
   }
   set(key, val) {
     if(!val) {
