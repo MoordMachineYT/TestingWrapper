@@ -170,8 +170,10 @@ class Client extends EventEmitter {
       for(let i = 0; i < messages.length; i += 100) {
         this.deleteMessages(channelID, messages.slice(i, i + 100)).catch(err => {
           reject = err;
-          break;
         });
+        if(reject) {
+          break;
+        }
       }
       if(reject) {
         return Promise.reject(reject);
