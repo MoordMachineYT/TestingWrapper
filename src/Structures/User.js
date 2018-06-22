@@ -16,6 +16,7 @@ class User extends Base {
     this.avatar = data.avatar || this.avatar;
     this.username = data.username || this.username;
     this.discrim = data.discriminator || this.discrim;
+    return this;
   }
   send(channelID, data) {
     return this._client.send(channelID, data);
