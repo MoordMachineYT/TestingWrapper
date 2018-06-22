@@ -436,6 +436,7 @@ class Shard extends EventEmitter {
       this.guildCount = packet.d.guilds.length;
       this.client.user = new ClientUser(packet.d.user, this.client);
       for(const guild of packet.d.guilds) {
+        guild.shard = this;
         this.client.guilds.set(guild.id, new UnavailableGuild(guild));
       }
       this.guildCreateTimeout = setTimeout(() => {
@@ -453,7 +454,7 @@ class Shard extends EventEmitter {
       const guild = new Guild(packet.d, this);
       this.client.guilds.set(packet.d.id, guild);
       if(this.status !== "ready") {
-        if(this.guildCount === this.client.guilds.size) {
+        if(this.guildCount === this.client.guilds.filter(g => g instanceof Guild).size) {
           clearTimeout(this.guildCreateTimeout);
           delete this.guildCreateTimeout;
           this.status = "ready";
