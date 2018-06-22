@@ -11,9 +11,11 @@ function extend() {
       return Object.keys(this).length;
     }
   });
-  Object.prototype.array = function() {
-    return Object.values(this);
-  };
+  Object.defineProperty(Object.prototype, "array", {
+    value: function() {
+      return Object.values(this);
+    }
+  });
 
   /* String */
   String.prototype.array = function() {
