@@ -396,6 +396,7 @@ class Shard extends EventEmitter {
       }
       if(packet.d.member) {
         packet.d.member.user = packet.d.author;
+        packet.d.member.guild_id = packet.d.guild_id;
       }
       const msg = new Message(packet.d, this.client);
       this.client.emit("message", channel.messages.set(msg.id, msg));
