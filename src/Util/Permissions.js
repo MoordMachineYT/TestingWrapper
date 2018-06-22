@@ -121,8 +121,8 @@ class Permissions extends Collection {
       num -= (1 << 0);
     }
   }
-  has(key) {
-    return this.get(key) || false;
+  get(key) {
+    return this.has(key);
   }
   toJSON() {
     return this.json;

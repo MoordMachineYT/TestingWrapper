@@ -5,6 +5,7 @@ const Base = require("./Base.js");
 class Role extends Base {
   constructor(data) {
     super(data.id);
+    this._raw = data;
     this.name = data.name;
     this.color = data.color;
     this.hoist = data.hoist;
@@ -12,6 +13,7 @@ class Role extends Base {
     this.managed = data.managed;
     this.mentionable = data.mentionable;
     this.guild = data.guild;
+    this.permissions = data.permissions;
   }
   update(data) {
     this.name = data.name;
@@ -20,6 +22,7 @@ class Role extends Base {
     this.position = data.position;
     this.managed = data.managed;
     this.mentionable = data.mentionable;
+    this.permissions = data.permissions;
   }
   delete(reason) {
     return this.guild.deleteRole(this.id, reason);

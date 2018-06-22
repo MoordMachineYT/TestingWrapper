@@ -17,8 +17,9 @@ class Member extends Base {
       this.user = client.user;
     } else if(client.users.has(this.id)) {
       this.user = client.users.get(this.id).update(user);
+      client.users.set(this.id, this.user);
     } else {
-      client.users.set(this.id, new User(data.user, this._client));
+      client.users.set(this.id, new User(user, this._client));
       this.user = client.users.get(this.id);
     }
     this.guild = data.guild || client.guilds.get(data.guild_id);
