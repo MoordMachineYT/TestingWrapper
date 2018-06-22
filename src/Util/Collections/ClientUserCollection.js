@@ -12,3 +12,5 @@ class ClientUserCollection extends Collection {
     }
   }
 }
+
+module.exports = ClientUserCollection;
