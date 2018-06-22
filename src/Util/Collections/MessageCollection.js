@@ -11,7 +11,7 @@ class MessageCollection extends Collection {
     this.channelID = channelID;
   }
   set(key, val) {
-    if(this.size >= this.limit) {
+    while(this.size >= this.limit) {
       this.delete(this.firstKey);
     }
     return super.set(key, val);
