@@ -10,6 +10,7 @@ class ClientUserCollection extends Collection {
     if(!val) {
       throw new Error("val is falsy");
     }
+    return super.set(key, val);
   }
 }
 
