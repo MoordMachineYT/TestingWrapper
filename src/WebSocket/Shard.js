@@ -47,6 +47,8 @@ class Shard extends EventEmitter {
     delete this.ws;
     this.ws = null;
     this.status = "disconnected";
+    this.guildCount = null;
+    this.guildCreateTimeout = undefined;
     this.heartbeat(-1);
     if(!this.globalqueue && !this.presencequeue) {
       this.globalqueue = new Limiter(120, 60000, 60);
@@ -292,7 +294,7 @@ class Shard extends EventEmitter {
       }
       case OPCodes.HELLO: {
         if (this.listenerCount("hello")) {
-          this.emit("hello", packet);
+          this.emit("hello", packet.d);
         }
         this.heartbeat(packet.d.heartbeat_interval);
         break;

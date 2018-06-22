@@ -89,7 +89,7 @@ class Client extends EventEmitter {
   send(channelID, data) {
     if(typeof data === "string" || data instanceof String) {
       data = {
-        content: data.valueOf()
+        content: "" + data.valueOf()
       };
     }
     if(channelID.id) {
