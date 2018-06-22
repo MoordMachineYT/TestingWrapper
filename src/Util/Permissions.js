@@ -5,7 +5,7 @@ const Collection = require("./Collection.js");
 class Permissions extends Collection {
   constructor(num) {
     super();
-    if(num & 8 === 8) {
+    if((num & 8) === 8) {
       num = 0b1111111111101111111110011111111;
     }
     if(num & (1 << 30)) {
