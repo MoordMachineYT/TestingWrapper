@@ -9,12 +9,14 @@ function extend() {
   Object.defineProperty(Object.prototype, "size", {
     get: function() {
       return Object.keys(this).length;
-    }
+    },
+    writable: true
   });
   Object.defineProperty(Object.prototype, "array", {
     value: function() {
       return Object.values(this);
-    }
+    },
+    writable: true
   });
 
   /* String */
