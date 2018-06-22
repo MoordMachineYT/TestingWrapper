@@ -12,7 +12,7 @@ class MessageCollection extends Collection {
   }
   set(key, val) {
     while(this.size >= this.limit) {
-      this.delete(this.firstKey);
+      super.delete(this.firstKey);
     }
     return super.set(key, val);
   }
