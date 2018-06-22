@@ -26,7 +26,6 @@ class Member extends Base {
     if(!this.guild) {
       throw new Error("member object created but corresponding guild not found");
     }
-    this.permission = new Permissions(this.calculateBasePermissions(data.roles));
     this.roles = data.roles.map(r => this.guild.roles.get(r));
   }
   update(data) {
