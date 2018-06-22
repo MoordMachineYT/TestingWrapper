@@ -183,7 +183,7 @@ class Client extends EventEmitter {
     return new Promise((res, rej) => {
       this.RequestHandler.request("delete", Endpoints.CHANNEL_BULK_DELETE(channelID), {
         auth: true,
-        data: messages
+        data: { messages }
       }).then(() => res()).catch((err) => rej(err));
     });
   }
