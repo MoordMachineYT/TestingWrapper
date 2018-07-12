@@ -19,6 +19,7 @@
   "homepage": "https://github.com/MoordMachineYT/TestingWrapper#readme",
   "dependencies": {
     "snekfetch": "^3.6.4",
+    "ws": "^5.2.2",
     "zlib-sync": "^0.1.4"
   },
   "devDependencies": {}
