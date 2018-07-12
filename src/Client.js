@@ -1,5 +1,6 @@
 "use strict";
 
+const CategoryChannel = require("./Structures/CategoryChannel.js");
 const ClientChannelCollection = require("./Util/Collections/ClientChannelCollection.js");
 const ClientGuildCollection = require("./Util/Collections/ClientGuildCollection.js");
 const ClientUserCollection = require("./Util/Collections/ClientUserCollection.js");
@@ -8,6 +9,8 @@ const Endpoints = require("./Rest/Endpoints.js");
 const Message = require("./Structures/Message.js");
 const RequestHandler = require("./Rest/RequestHandler.js");
 const ShardManager = require("./WebSocket/ShardManager.js");
+const TextChannel = require("./Structures/TextChannel.js");
+const VoiceChannel = require("./Structures/VoiceChannel.js");
 
 
 let EventEmitter = require("events").EventEmitter;
@@ -88,7 +91,7 @@ class Client extends EventEmitter {
       res(this);
     });
   }
-  send(channelID, data) {
+  sendMessage(channelID, data) {
     if(typeof data === "string" || data instanceof String || !data) {
       data = {
         content: "" + data
@@ -114,14 +117,11 @@ class Client extends EventEmitter {
       });
     });
   }
-  sendMessage(channelID, content) {
-    return this.send(channelID, { content });
-  }
   sendCodeBlock(channelID, content, language) {
-    return this.send(channelID, { content: `\`\`\`${language || "js"}\n${content}\n\`\`\``});
+    return this.sendMessage(channelID, { content: `\`\`\`${language || "js"}\n${content}\n\`\`\``});
   }
   sendEmbed(channelID, embed) {
-    return this.send(channelID, { embed });
+    return this.sendMessage(channelID, { embed });
   }
   setPresence(data) {
     if(!data.status) {
@@ -180,6 +180,24 @@ class Client extends EventEmitter {
         auth: true,
         data: { messages }
       }).then(() => res()).catch((err) => rej(err));
+    });
+  }
+  getGuildChannels(guild) {
+    guild = guild.id || guild;
+    return new Promise((res, rej) => {
+      this.RequestHandler.request("get", Endpoints.GUILD_CHANNELS(guild), {
+        auth: true
+      }).then(channels => {
+        channels = channels.map(channel => {
+          if(channel.type === 0) {
+            return new TextChannel(channel, this);
+          }
+          if(channel.type === 2) {
+            return new VoiceChannel(channel, this);
+          }
+          return new CategoryChannel(channel, this);
+        })
+      })
     });
   }
   get uptime() {
