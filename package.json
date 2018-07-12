@@ -1,26 +1,33 @@
 {
   "name": "plexi-wrapper",
-  "version": "0.1",
+  "version": "0.0.0",
   "description": "A framework made to communicate with Discord's API",
   "main": "index.js",
+  "dependencies": {
+    "ws": "^5.2.2",
+    "zlib-sync": "^0.1.4",
+    "snekfetch": "^3.6.4"
+  },
+  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "eslint": "eslint . --fix && echo \"OK\" || echo \" NOT OK \""
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MoordMachineYT/TestingWrapper.git"
   },
-  "author": "",
+  "keywords": [
+    "discord",
+    "discord-api",
+    "plexi",
+    "plexi-wrapper",
+    "library",
+    "discord-library"
+  ],
+  "author": "MoordMachineYT#1910",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/MoordMachineYT/TestingWrapper/issues"
   },
-  "homepage": "https://github.com/MoordMachineYT/TestingWrapper#readme",
-  "dependencies": {
-    "snekfetch": "^3.6.4",
-    "ws": "^5.2.2",
-    "zlib-sync": "^0.1.4"
-  },
-  "devDependencies": {}
+  "homepage": "https://github.com/MoordMachineYT/TestingWrapper#readme"
 }
