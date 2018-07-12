@@ -168,7 +168,7 @@ class Client extends EventEmitter {
       messages = messages.keyArray;
     }
     if(messages.length > 100) {
-      return this.RequestHandler.request("delete", Endpoints.CHANNEL_BULK_DELETE(channelID), {
+      return this.RequestHandler.request("post", Endpoints.CHANNEL_BULK_DELETE(channelID), {
         auth: true,
         data: {
           messages: messages.splice(0, 100)
@@ -176,7 +176,7 @@ class Client extends EventEmitter {
       }).then(() => this.deleteMessages(channelID, messages));
     }
     return new Promise((res, rej) => {
-      this.RequestHandler.request("delete", Endpoints.CHANNEL_BULK_DELETE(channelID), {
+      this.RequestHandler.request("post", Endpoints.CHANNEL_BULK_DELETE(channelID), {
         auth: true,
         data: { messages }
       }).then(() => res()).catch((err) => rej(err));
