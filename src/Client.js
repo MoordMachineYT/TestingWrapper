@@ -196,8 +196,9 @@ class Client extends EventEmitter {
             return new VoiceChannel(channel, this);
           }
           return new CategoryChannel(channel, this);
-        })
-      })
+        });
+        res(channels);
+      }).catch(err => rej(err));
     });
   }
   get uptime() {
