@@ -168,19 +168,12 @@ class Client extends EventEmitter {
       messages = messages.keyArray;
     }
     if(messages.length > 100) {
-      var reject = false;
-      for(let i = 0; i < messages.length; i += 100) {
-        this.deleteMessages(channelID, messages.slice(i, i + 100)).catch(err => {
-          reject = err;
-        });
-        if(reject) {
-          break;
+      return this.RequestHandler.request("delete", Endpoints.CHANNEL_BULK_DELETE(channelID), {
+        auth: true,
+        data: {
+          messages: messages.splice(0, 100)
         }
-      }
-      if(reject) {
-        return Promise.reject(reject);
-      }
-      return Promise.resolve();
+      }).then(() => this.deleteMessages(channelID, messages));
     }
     return new Promise((res, rej) => {
       this.RequestHandler.request("delete", Endpoints.CHANNEL_BULK_DELETE(channelID), {
