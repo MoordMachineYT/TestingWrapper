@@ -189,6 +189,9 @@ class Client extends EventEmitter {
       }).then(() => res()).catch((err) => rej(err));
     });
   }
+  get uptime() {
+    return this.ready ? Date.now() - this.startTime : 0;
+  }
 }
 
 module.exports = Client;

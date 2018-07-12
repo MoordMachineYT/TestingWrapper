@@ -22,6 +22,7 @@ class ShardManager extends Collection {
       this.client.emit("shardReady", id);
       if(++this.shardReady === this.shard) {
         this.client.ready = true;
+        this.client.startTime = Date.now();
         this.client.emit("ready");
       }
     }).on("disconnect", id => {

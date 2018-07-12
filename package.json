@@ -1,6 +1,6 @@
 {
   "name": "plexi-wrapper",
-  "version": "1.0.0",
+  "version": "0.1",
   "description": "A framework made to communicate with Discord's API",
   "main": "index.js",
   "scripts": {
