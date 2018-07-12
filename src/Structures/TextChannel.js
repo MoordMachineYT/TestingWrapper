@@ -13,13 +13,13 @@ class TextChannel extends GuildChannel {
     this.lastPinTimestamp = data.last_pin_timestamp;
   }
   send(data) {
-    return this._client.send(this.id, data);
+    return this._client.sendMessage(this.id, data);
   }
   sendMessage(content) {
-    return this._client.send(this.id, { content });
+    return this._client.sendMessage(this.id, { content });
   }
   sendEmbed(embed) {
-    return this._client.send(this.id, { embed });
+    return this._client.sendMessage(this.id, { embed });
   }
   sendCodeBlock(content) {
     return this._client.sendCodeBlock(this.id, content);
