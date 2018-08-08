@@ -6,11 +6,6 @@ function extend() {
   }
 
   /* Object */
-  Object.defineProperty(Object.prototype, "size", {
-    get: function() {
-      return Object.keys(this).length;
-    }
-  });
   Object.defineProperty(Object.prototype, "array", {
     value: function() {
       return Object.values(this);
