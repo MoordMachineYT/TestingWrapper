@@ -11,7 +11,7 @@ class RequestHandler {
     this.limits = new Map();
   }
   request(method, path, options = {}) {
-    const req = new Request(this, method, path, options);
+    const req = new Request(this.client, method, path, options);
     return new Promise((res, rej) => {
       const cb = () => {
         req.generate().then((resp) => {
