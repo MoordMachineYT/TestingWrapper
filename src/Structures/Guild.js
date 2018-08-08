@@ -49,13 +49,12 @@ class Guild extends Base {
     
     this.channels = new Collection();
     for(const channel of data.channels) {
-      channel.guild_id = this.id;
       if(channel.type === 0) {
-        this._client.channels.set(channel.id, this.channels.set(channel.id, new TextChannel(channel, this._client)));
+        this._client.channels.set(channel.id, this.channels.set(channel.id, new TextChannel(channel, this)));
       } else if(channel.type === 2) {
-        this._client.channels.set(channel.id, this.channels.set(channel.id, new VoiceChannel(channel, this._client)));
+        this._client.channels.set(channel.id, this.channels.set(channel.id, new VoiceChannel(channel, this)));
       } else if(channel.type === 4) {
-        this._client.channels.set(channel.id, this.channels.set(channel.id, new CategoryChannel(channel, this._client)));
+        this._client.channels.set(channel.id, this.channels.set(channel.id, new CategoryChannel(channel, this)));
       } else {
         throw new Error("Non-guild channel found in guild");
       }

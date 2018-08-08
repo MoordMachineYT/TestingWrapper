@@ -1,72 +1,44 @@
 "use strict";
 
-const DiscordRESTError = require("../Rest/DiscordRESTError.js");
-
 class SequentialBucket {
-  constructor(client, offset) {
-    this.client = client;
-    this.offset = offset;
-
+  constructor(manager) {
+    this.manager = manager;
     this.list = [];
     this.ratelimited = false;
+    this.busy = false;
+    this.resetTime = 0;
+    this.limit = this.remaining = 10;
+
+    this.handle = this.handle.bind(this);
   }
-  queue(func) {
-    this.list.push(func);
+  queue(func, first) {
+    this.list[first ? "unshift" : "push"](func);
     this.handle();
   }
-  handle(timeout) {
-    if(this.list.length === 0) {
-      if(this.timeout) {
-        clearTimeout(this.timeout);
+  handle() {
+    if(!this.list.length) {
+      if(this.busy) {
+        this.busy = false;
       }
       return;
     }
-    if(this.timeout) {
+    if(this.busy) {
       return;
     }
-    if(this.remaining === 0 && this.resetTime > Date.now()) {
-      return;
+    if(this.ratelimited || this.manager.ratelimited) {
+      return; // Always at least 1 function in list in this case
     }
-    if(timeout || this.ratelimited) {
-      if(!timeout) {
-        timeout = this.resetTime - Date.now() + this.offset;
-      }
-      this.timeout = setTimeout(() => {
-        this.timeout = null;
-        this.handle();
-      }, timeout);
-      return;
-    }
-    const req = this.list.shift();
-    req.request.generate().end((err, res) => {
-      if(res && res.headers) {
-        if(res.headers["x-ratelimit-global"]) {
-          this.ratelimited = true;
-        }
-        this.resetTime = Number(res.headers["retry-after"]) + Date.now();
-        this.remaining = Number(res.headers["x-ratelimit-remaining"]);
-      }
-      if(err) {
-        if(err.status === 429) {
-          this.list.unshift(req);
-          this.ratelimited = true;
-          setTimeout(() => {
-            this.ratelimited = false;
-            this.handle();
-          }, Number(res.headers["retry-after"]));
-        } else if(err.status >= 500 && err.status < 600) {
-          this.list.unshift(req);
-          this.handle(1000 + this.offset);
-        } else {
-          let newErr = err.status >= 400 && err.status < 500 ? new DiscordRESTError(res.body, err.status, res.request.path) : err;
-          req.rej(newErr);
-          this.handle();
-        }
+    if(this.remaining === 0) {
+      if(this.resetTime < Date.now() - this.manager.client.options.restTimeOffset) {
+        this.remaining = this.limit;
       } else {
-        req.res(res && res.body ? res.body : {});
-        this.handle();
+        setTimeout(this.handle, Date.now() - this.manager.client.options.restTimeOffset);
+        return;
       }
-    });
+    }
+    --this.remaining;
+    this.list.shift()();
+    this.handle();
   }
 }
 

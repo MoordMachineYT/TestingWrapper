@@ -2,26 +2,18 @@
 
 class Collection extends Map {
   constructor(base, limit) {
-    super(base);
+    super();
+    this.base = base;
     this.limit = limit || Infinity;
   }
-  get(key) {
-    return super.get(key) || null;
-  }
-  set(key, val = null) {
-    if(typeof key === "undefined") {
-      throw new TypeError("key must have a value");
-    }
-    if(this.size >= this.limit) {
-      throw new RangeError("limit reached");
+  set(key, val) {
+    while(this.size > this.limit) {
+      super.delete(this.firstKey);
     }
     super.set(key, val);
     return val;
   }
   delete(key) {
-    if(!this.has(key)) {
-      throw new Error("key not found");
-    }
     const val = this.get(key);
     super.delete(key);
     return val;
@@ -90,10 +82,6 @@ class Collection extends Map {
       arr[i++] = fn(val, key);
     }
     return arr;
-  }
-  forEach(fn, thisArg) {
-    super.forEach(fn, thisArg);
-    return this;
   }
   some(fn, thisArg) {
     if(thisArg) {
@@ -181,7 +169,7 @@ class Collection extends Map {
     return obj;
   }
   clone() {
-    return new this.constructor(this);
+    return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
   }
   get first() {
     return this.array[0];

@@ -60,7 +60,7 @@ class Client extends EventEmitter {
         auth: true
       }).then((data) => {
         if(this.options.shardCount === "auto" && !data.shards) {
-          throw new Error("Failed to autoshard due to lack of data from Discord");
+          rej(new Error("Failed to autoshard due to lack of data from Discord"));
         }
         let shards;
         if(typeof this.options.shardCount === "number") {
@@ -70,9 +70,7 @@ class Client extends EventEmitter {
         } else {
           shards = 1;
         }
-        if(shards !== 1) {
-          this.recShard = shards;
-        }
+        data.shards = shards;
         for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || shards); i++) {
           setTimeout(() => {
             this.shards.spawn(data.gateway_url, i);
@@ -106,16 +104,10 @@ class Client extends EventEmitter {
         data.content = data.content.replace(/@everyone/g, "@\u200beveryone").replace(/@here/g, "@\u200bhere");
       }
     }
-    return new Promise((res, rej) => {
-      this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
-        auth: true,
-        data
-      }).then((msg) => {
-        res(new Message(msg, this));
-      }).catch((err) => {
-        rej(err);
-      });
-    });
+    return this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
+      auth: true,
+      data
+    }).then((msg) => new Message(msg, this));
   }
   sendCodeBlock(channelID, content, language) {
     return this.sendMessage(channelID, { content: `\`\`\`${language || "js"}\n${content}\n\`\`\``});
@@ -133,7 +125,7 @@ class Client extends EventEmitter {
     this.shards.forEach(shard => {
       shard.setPresence(data);
     });
-    Promise.resolve(data);
+    return Promise.resolve(data);
   }
   deleteMessage(channelID, message) {
     if(channelID.id) {
@@ -142,19 +134,15 @@ class Client extends EventEmitter {
     if(message.id) {
       message = message.id;
     }
-    return new Promise((res, rej) => {
-      this.RequestHandler.request("delete", Endpoints.CHANNEL_MESSAGE(channelID, message), {
-        auth: true
-      }).then((msg) => {
-        msg = this.channels.get(channelID).messages.get(msg.id);
-        if(!msg) {
-          res(null);
-        }
-        msg.deleted = true;
-        res(msg);
-      }).catch((err) => {
-        rej(err);
-      });
+    return this.RequestHandler.request("delete", Endpoints.CHANNEL_MESSAGE(channelID, message), {
+      auth: true
+    }).then((msg) => {
+      msg = this.channels.get(channelID).messages.get(msg.id);
+      if(!msg) {
+        return null;
+      }
+      msg.deleted = true;
+      return msg;
     });
   }
   deleteMessages(channelID, messages) {
@@ -184,22 +172,17 @@ class Client extends EventEmitter {
   }
   getGuildChannels(guild) {
     guild = guild.id || guild;
-    return new Promise((res, rej) => {
-      this.RequestHandler.request("get", Endpoints.GUILD_CHANNELS(guild), {
-        auth: true
-      }).then(channels => {
-        channels = channels.map(channel => {
-          if(channel.type === 0) {
-            return new TextChannel(channel, this);
-          }
-          if(channel.type === 2) {
-            return new VoiceChannel(channel, this);
-          }
-          return new CategoryChannel(channel, this);
-        });
-        res(channels);
-      }).catch(err => rej(err));
-    });
+    return this.RequestHandler.request("get", Endpoints.GUILD_CHANNELS(guild), {
+      auth: true
+    }).then(channels => channels.map(channel => {
+      if(channel.type === 0) {
+        return new TextChannel(channel, this);
+      }
+      if(channel.type === 2) {
+        return new VoiceChannel(channel, this);
+      }
+      return new CategoryChannel(channel, this);
+    }));
   }
   get uptime() {
     return this.ready ? Date.now() - this.startTime : 0;

@@ -15,8 +15,7 @@ class ShardManager extends Collection {
     if(this.has(shard)) {
       throw new Error(`Shard ${shard} already set!`);
     }
-    const s = new Shard(this, shard);
-    s.on("connect", id => {
+    const s = new Shard(this, shard).on("connect", id => {
       this.client.emit("shardPreReady", id);
     }).on("ready", id => {
       this.client.emit("shardReady", id);

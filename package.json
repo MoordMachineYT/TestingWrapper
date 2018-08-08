@@ -5,12 +5,15 @@
   "main": "index.js",
   "dependencies": {
     "ws": "^5.2.2",
-    "zlib-sync": "^0.1.4",
-    "snekfetch": "^3.6.4"
+    "node-fetch": "^2.2.0"
+  },
+  "optionalDependencies": {
+    "zlib-sync": "^0.1.4"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "eslint . --fix && echo \"Nothing to worry about\" || echo \"Errors \""
   },
   "repository": {
     "type": "git",
@@ -25,7 +28,7 @@
     "discord-library"
   ],
   "author": "MoordMachineYT#1910",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/MoordMachineYT/TestingWrapper/issues"
   },

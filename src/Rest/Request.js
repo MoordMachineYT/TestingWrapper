@@ -1,6 +1,7 @@
 "use strict";
 
-const snek = require("snekfetch");
+const fetch = require("node-fetch");
+const FormData = require("form-data");
 const https = require("https");
 const { BASE } = require("./Endpoints.js");
 
@@ -11,7 +12,6 @@ class Request {
     this.client = client;
     this.method = method;
     this.path = path;
-    this.route = options.route;
     this.options = options;
   }
   generate() {
@@ -29,25 +29,28 @@ class Request {
         headers[i] = this.options.headers[i];
       }
     }
-
-    const request = snek[this.method](BASE + this.path, {
-      agent,
-      headers,
-      data: typeof this.options.data !== "undefined" && !this.options.files ? JSON.stringify(this.options.data) : null
-    });
-    if(this.options.files) {
+    let body;
+    if(this.options.files && this.options.files.length) {
+      body = new FormData;
       for(const file of this.options.files) {
         if(file && file.file) {
-          request.attach(file.name, file.file, file.name);
+          body.append(file.name, file.file, file.name);
         }
       }
       if(typeof this.options.data !== "undefined") {
-        request.attach("payload_json", JSON.stringify(this.options.data));
+        body.append("payload_json", JSON.stringify(this.options.data));
+        headers = Object.assign(headers, body.getHeaders());
       }
-    } else if(typeof this.options.data !== "undefined") {
-      request.send(this.options.data);
+    } else if(this.options.data !== undefined) {
+      body = JSON.stringify(this.options.data);
+      headers["Content-Type"] = "application/json";
     }
-    return request;
+    return fetch(BASE + this.path, {
+      method: this.method,
+      headers,
+      agent,
+      body,
+    });
   }
 }
 

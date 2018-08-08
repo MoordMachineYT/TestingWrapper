@@ -1,10 +1,11 @@
 class DiscordRESTError extends Error {
-  constructor(message, type, stack) {
+  constructor(message, code) {
     super(message);
-    this.name = `DiscordRESTError [${type}]`;
-    if(stack) {
-      this.stack = stack;
-    }
+    this.name = `DiscordRESTError [${code}]`;
+    this.code = code;
+  }
+  toString() {
+    return `${this.name}: ${this.message}`;
   }
 }
 
