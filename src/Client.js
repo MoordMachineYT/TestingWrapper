@@ -106,6 +106,7 @@ class Client extends EventEmitter {
     }
     return this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
       auth: true,
+      files: data.files || [data.file]
       data
     }).then((msg) => new Message(msg, this));
   }
