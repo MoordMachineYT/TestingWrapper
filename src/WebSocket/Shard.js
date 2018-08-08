@@ -430,7 +430,11 @@ class Shard extends EventEmitter {
           this.client.guilds.set(guild.id, new UnavailableGuild(guild));
         }
         this.guildCreateTimeout = setTimeout(() => {
-          
+          if(this.client.options.getAllMembers) {
+            this.getAllMembers();
+          } else {
+            this.emit(ready);
+          }
         }, this.client.options.guildCreateTimeout);
         break;
       }
@@ -438,11 +442,14 @@ class Shard extends EventEmitter {
         const available = this.client.guilds.has(packet.d.id) ? this.client.guilds.get(packet.d.id).available : true;
         const guild = new Guild(packet.d, this);
         this.client.guilds.set(packet.d.id, guild);
-        if(this.client.options.getAllMembers) {
+        if(this.client.options.getAllMembers && this.status === "ready") {
           this.getAllMembers({
             guildID: guild.id, 
             query: ""
           });
+        }
+        if(this.status !== "ready") {
+          break;
         }
         this.client.emit(available ? "guildCreate" : "guildAvailable", guild);
         break;
