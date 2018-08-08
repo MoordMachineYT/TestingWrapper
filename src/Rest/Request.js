@@ -19,7 +19,7 @@ class Request {
       "User-Agent": `DiscordBot (https://github.com/MoordMachineYT/TestingWrapper, ${require("../../package.json").version})`
     };
     if(this.options.auth) {
-      headers["Authorization"] = this.client.token.startsWith("Bot ") ? this.client.token : "Bot " + this.client.token;
+      headers["Authorization"] = this.client.options.token.startsWith("Bot ") ? this.client.options.token : "Bot " + this.client.options.token;
     }
     if(this.options.reason) {
       headers["X-Audit-Log-Reason"] = encodeURIComponent(this.options.reason);
