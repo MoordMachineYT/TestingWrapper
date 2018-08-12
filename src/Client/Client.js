@@ -23,8 +23,7 @@ try {
 class Client extends EventEmitter {
   constructor(options) {
     super();
-    this.token = options.token;
-    this.options = {
+    this.options = Object.assign({
       presence: {
         status: "online",
         afk: false,
@@ -42,10 +41,7 @@ class Client extends EventEmitter {
       messageCacheLimit: 100,
       restTimeOffset: 0,
       ws: {}
-    };
-    for(const i in options) {
-      this.options[i] = options[i];
-    }
+    }, options);
     this.options.shardSpawnTimeout = Math.max(this.options.shardSpawnTimeout, 5000); // Must be at least 5000
     this.RequestHandler = new RequestHandler(this);
     this.shards = new ShardManager(this);
@@ -53,35 +49,33 @@ class Client extends EventEmitter {
     this.guilds = new ClientGuildCollection(this);
     this.users = new ClientUserCollection();
     this.channels = new ClientChannelCollection(this);
+    this.attempts = 1;
   }
-  connect() {
-    return new Promise((res, rej) => {
-      this.RequestHandler.request("get", Endpoints.GATEWAY_BOT, {
+  async connect() {
+    try {
+      const data = await this.RequestHandler.request("GET", Endpoints.GATEWAY_BOT, {
         auth: true
-      }).then((data) => {
-        if(this.options.shardCount === "auto" && !data.shards) {
-          rej(new Error("Failed to autoshard due to lack of data from Discord"));
-        }
-        let shards;
-        if(typeof this.options.shardCount === "number") {
-          shards = this.options.shardCount;
-        } else if(this.options.shardCount === "auto") {
-          shards = data.shards;
-        } else {
-          shards = 1;
-        }
-        data.shards = shards;
-        for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || shards); i++) {
-          setTimeout(() => {
-            this.shards.spawn(data.gateway_url, i);
-          }, this.options.shardSpawnTimeout*i);
-        }
-        data.shards = shards;
-        res(data);
-      }).catch((err) => {
-        rej(err);
       });
-    });
+      if(this.options.shardCount === "auto" && !data.shards) {
+        throw new Error("Failed to autoshard due to lack of data from Discord");
+      }
+      if(this.options.shardCount === "auto") {
+        this.options.shardCount = data.shards;
+      }
+      if(this.options.shardCount < data.shards) {
+        this.onDebug(`Connecting to Discord with ${this.options.shardCount} shards, however ${data.shards} is recommended`);
+      }
+      this.gatewayURL = data.url;
+      for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || data.shards); i++) {
+        this.shards.spawn(i);
+      }
+    } catch(err) {
+      if(this.tryReconnect && this.attempts++ !== 5) {
+        this.onError(err);
+        return this.connect();
+      }
+      return err;
+    }
   }
   disconnect(bool) {
     return new Promise((res) => {
@@ -106,7 +100,7 @@ class Client extends EventEmitter {
     }
     return this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
       auth: true,
-      files: data.files || [data.file]
+      files: data.files || [data.file],
       data
     }).then((msg) => new Message(msg, this));
   }

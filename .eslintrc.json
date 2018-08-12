@@ -17,7 +17,7 @@
             "unix"
         ],
         "no-console": [
-            0,
+            "error",
             "always"
         ],
         "quotes": [

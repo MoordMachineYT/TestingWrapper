@@ -4,7 +4,7 @@ const Collection = require("../Collection.js");
 
 class ClientChannelCollection extends Collection {
   constructor(client) {
-    super(null, Infinity);
+    super("Channel", Infinity);
     this._client = client;
   }
   set(key, val) {

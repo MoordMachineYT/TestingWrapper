@@ -31,17 +31,15 @@ try {
 }
 
 class Shard extends EventEmitter {
-  constructor(manager, id) {
+  constructor(client, id) {
     super();
-    this.client = manager.client;
+    this.client = client;
     this.id = id;
 
     this.attempts = 0;
     this.gateway = GATEWAY_URL;
 
     this.reset();
-
-    return this;
   }
   reset() {
     this.seq = 0;

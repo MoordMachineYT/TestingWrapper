@@ -1,6 +1,6 @@
 "use strict";
 
-const Client = require("./src/Client.js");
+const Client = require("./src/Client/Client.js");
 const extend = require("./src/Util/Extend.js");
 
 function Plexi(options) {
@@ -13,7 +13,7 @@ Plexi.Channel = require("./src/Structures/Channel.js");
 Plexi.Client = Client;
 Plexi.ClientUser = require("./src/Structures/ClientUser.js");
 Plexi.Collection = require("./src/Util/Collection.js");
-Plexi.Constants = require("./src/Constants.js");
+Plexi.Constants = require("./src/Util/Constants.js");
 Plexi.DMChannel = require("./src/Structures/DMChannel.js");
 Plexi.Guild = require("./src/Structures/Guild.js");
 Plexi.GuildChannel = require("./src/Structures/GuildChannel.js");
@@ -31,7 +31,7 @@ Plexi.TextChannel = require("./src/Structures/TextChannel.js");
 Plexi.User = require("./src/Structures/User.js");
 Plexi.VoiceChannel = require("./src/Structures/VoiceChannel.js");
 
-Object.keys(Plexi).filter(key => Plexi.hasOwnProperty(key) && typeof Plexi[key] === "function" && !Plexi[key].prototype.toString).forEach(key => {
+Object.keys(Plexi).filter(key => Plexi.hasOwnProperty(key) && typeof Plexi[key] === "function" && Plexi[key].prototype.toString === Object.prototype.toString).forEach(key => {
   Plexi[key].prototype.toString = Plexi.Base.prototype.toString;
 });
 

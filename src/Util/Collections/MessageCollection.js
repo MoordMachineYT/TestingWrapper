@@ -5,8 +5,8 @@ const Endpoints = require("../../Rest/Endpoints.js");
 const Message = require("../../Structures/Message.js");
 
 class MessageCollection extends Collection {
-  constructor(client, channelID, base, limit) {
-    super(base, limit);
+  constructor(client, channelID, limit) {
+    super("Message", limit);
     this._client = client;
     this.channelID = channelID;
   }

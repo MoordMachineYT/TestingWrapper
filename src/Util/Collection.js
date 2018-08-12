@@ -171,6 +171,9 @@ class Collection extends Map {
   clone() {
     return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
   }
+  toString() {
+    return `Collection${this.base ? `<${this.base}>` : ""}`;
+  }
   get first() {
     return this.array[0];
   }

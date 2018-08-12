@@ -18,9 +18,9 @@ class RequestHandler {
           if(resp.headers.get("x-ratelimit-global")) {
             this.ratelimited = true;
           }
-          bucket.resetTime = Date.parse(resp.headers.get("x-ratelimit-reset"));
-          bucket.requests = Number(resp.headers.get("x-ratelimit-limit"));
-          bucket.remaining = Number(resp.headers.get("x-ratelimit-remaining"));
+          bucket.resetTime = Date.parse(resp.headers.get("x-ratelimit-reset")) || bucket.resetTime;
+          bucket.requests = Number(resp.headers.get("x-ratelimit-limit")) || bucket.requests;
+          bucket.remaining = Number(resp.headers.get("x-ratelimit-remaining")) || bucket.remaining;
           if(resp.ok) {
             return resp.json().then(res);
           }
@@ -30,16 +30,15 @@ class RequestHandler {
               this.resetTime = Date.parse(resp.headers.get("x-ratelimit-reset"));
             }
             setTimeout(() => {
-              bucket.ratelimited = false;
-              this.ratelimited = false;
+              bucket.ratelimited = this.ratelimited = false;
               bucket.queue(cb, true);
             }, Number(resp.headers.get("retry-after") + this.client.options.restTimeOffset));
             return;
           } else if(resp.status >= 500 && resp.status < 600) {
-            if(cb.retried === true) {
+            if(req.retried === true) {
               return rej(new DiscordRESTError(resp.status === 502 ? "No gateway available" : "Error while processing request", resp.status));
             }
-            cb.retried = true;
+            req.retried = true;
             bucket.busy = true;
             setTimeout(() => {
               bucket.busy = false;
@@ -52,7 +51,7 @@ class RequestHandler {
         }).catch(err => rej(err));
       };
       let route = path;
-      if(method === "DELETE" && path.match(/\/messages\/\d+$/)) { // Delete message has it's own limit
+      if(method === "DELETE" && /\/messages\/\d+$/.test(path)) { // Delete message has it's own limit
         route = method + route;
       }
       if(!this.limits.has(route)) {

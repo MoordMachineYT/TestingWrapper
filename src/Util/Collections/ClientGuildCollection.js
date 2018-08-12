@@ -4,7 +4,7 @@ const Collection = require("../Collection.js");
 
 class ClientGuildCollection extends Collection {
   constructor(client) {
-    super(null, Infinity);
+    super("Guild", Infinity);
     this._client = client;
   }
   delete(key) {
