@@ -447,7 +447,7 @@ class Shard extends EventEmitter {
         }
         if(this.status !== "ready") {
           clearTimeout(this.guildCreateTimeout);
-          if(this.guilds.some(g => g.available === false)) {
+          if(this.client.guilds.some(g => g.available === false)) {
             this.guildCreateTimeout = setTimeout(() => {
               this.status = "ready";
               this.emit("ready");
