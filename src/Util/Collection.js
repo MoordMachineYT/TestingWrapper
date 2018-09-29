@@ -91,7 +91,7 @@ class Collection extends Map {
     if(thisArg) {
       fn = fn.bind(thisArg);
     }
-    for(const [key, val] of this.values()) {
+    for(const [key, val] of this.entries()) {
       if(fn(val, key)) {
         return true;
       }
