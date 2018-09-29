@@ -69,7 +69,7 @@ class Shard extends EventEmitter {
       throw new Error(WSError.READY);
     }
     let packet = {
-      token: this.client.token,
+      token: this.client.options.token,
       properties: {
         os: process.platform,
         browser: "plexi",
@@ -121,7 +121,7 @@ class Shard extends EventEmitter {
       this.debug(new Error(WSError.EXISTS));
       return;
     }
-    if(!this.client.token) {
+    if(!this.client.options.token) {
       throw new Error("no token provided");
     }
     this.status = "connecting";
@@ -196,13 +196,13 @@ class Shard extends EventEmitter {
     this.debug(data);
     if(presence) {
       this.presencequeue.queue(() => {
-        this.ws.send((Erlpack !== undefined ? Erlpack.pack : JSON.parse)(data));
+        this.ws.send((Erlpack !== undefined ? Erlpack.pack : JSON.stringify)(data));
       });
       this.globalqueue.queue(() => {}); // eslint-disable-line no-empty
       return;
     }
     this.globalqueue.queue(() => {
-      this.ws.send((Erlpack !== undefined ? Erlpack.pack : JSON.parse)(data));
+      this.ws.send((Erlpack !== undefined ? Erlpack.pack : JSON.stringify)(data));
     });
   }
   onOpen(event) {
@@ -211,7 +211,6 @@ class Shard extends EventEmitter {
     }
     this.status = "handshaking";
     this.emit("connect", this.id);
-    this.debug(`Connected to ${this.gateway} !`);
     if(this.sessionID) {
       this.resume();
     } else {
@@ -244,13 +243,13 @@ class Shard extends EventEmitter {
           return;
         }
         try {
-          packet = WebSocket.unpack(this.inflate.result);
+          packet = (Erlpack !== undefined ? Erlpack.unpack : JSON.parse)(this.inflate.result);
         } catch(err) {
           this.debug(err);
           return;
         }
       } else {
-        packet = WebSocket.unpack(data);
+        packet = (Erlpack !== undefined ? Erlpack.unpack : JSON.parse)(data);
       }
       if(this.client.listenerCount("rawWS")) {
         this.client.emit("rawWS", packet, this.id);
@@ -371,10 +370,11 @@ class Shard extends EventEmitter {
     this.debug(err);
   }
   onEvent(packet) {
-    if(++this.seq < packet.s) {
+    if(1 + this.seq < packet.s) {
       this.debug("Invalid sequence number, requesting resume");
       this.resume();
     }
+    this.seq = packet.s;
     switch (packet.t) {
       case "TYPING_START": {
         break;
@@ -429,6 +429,7 @@ class Shard extends EventEmitter {
           this.client.guilds.set(guild.id, new UnavailableGuild(guild));
         }
         this.guildCreateTimeout = setTimeout(() => {
+          this.status = "ready";
           this.emit("ready");
         }, this.client.options.guildCreateTimeout);
         break;
@@ -438,13 +439,23 @@ class Shard extends EventEmitter {
         const available = this.client.guilds.has(packet.d.id) ? this.client.guilds.get(packet.d.id).available : true;
         const guild = new Guild(packet.d, this);
         this.client.guilds.set(packet.d.id, guild);
-        if(this.client.options.getAllMembers && this.status === "ready") {
+        if(this.client.options.getAllMembers) {
           this.getAllMembers({
             guildID: guild.id, 
             query: ""
           });
         }
         if(this.status !== "ready") {
+          clearTimeout(this.guildCreateTimeout);
+          if(this.guilds.some(g => g.available === false)) {
+            this.guildCreateTimeout = setTimeout(() => {
+              this.status = "ready";
+              this.emit("ready");
+            });
+          } else {
+            this.status = "ready";
+            this.emit("ready");
+          }
           break;
         }
         this.client.emit(available ? "guildCreate" : "guildAvailable", guild);
@@ -511,43 +522,24 @@ class Shard extends EventEmitter {
     if(!this.ws) {
       return;
     }
-    if(options) {
-      this.send({
-        "op": OPCodes.REQUEST_GUILD_MEMBERS,
-        "d": {
-          guild_id: options.guildID,
-          query: options.query || "",
-          limit: options.limit || 0
-        }
-      });
-      return;
-    }
-    for(const id of this.client.guilds.filter(g => g.shard.id === this.id).keyArray) {
-      this.send({
-        "op": OPCodes.REQUEST_GUILD_MEMBERS,
-        "d": {
-          guild_id: id,
-          query: "",
-          limit: 0
-        }
-      });
-    }
+    this.send({
+      "op": OPCodes.REQUEST_GUILD_MEMBERS,
+      "d": {
+        guild_id: options.guildID,
+        query: options.query || "",
+        limit: options.limit || 0
+      }
+    });
   }
   debug(val) {
     if (!val) {
       return;
     }
     if(val instanceof Error) {
-      this.emit("error", val, this.id);
+      this.client.emit("error", val, this.id);
       return;
     }
-    this.emit("debug", val, this.id);
-  }
-  emit() {
-    if(["connect", "disconnect"].indexOf(arguments[0] !== -1)) {
-      arguments[0] = "shard" + arguments[0][0].toUpperCase() + arguments[0].slice(1);
-    }
-    this.client.emit.apply(this.client, arguments);
+    this.client.emit("debug", val, this.id);
   }
 }
 

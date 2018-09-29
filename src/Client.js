@@ -67,12 +67,15 @@ class Client extends EventEmitter {
       if(this.options.shardCount < data.shards) {
         this.emit("debug", `Connecting to Discord with ${this.options.shardCount} shards, however ${data.shards} is recommended`);
       }
+      if(this.options.lastShardID === 0) {
+        this.options.lastShardID = this.options.shardCount;
+      }
       this.gatewayURL = data.url;
-      for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || (this.options.shardCount === "auto" ? data.shards : this.options.shardCount)); i++) {
+      for(let i = this.options.firstShardID; i < this.options.lastShardID; i++) {
         this.shards.spawn(i);
       }
     } catch(err) {
-      if(this.tryReconnect && this.attempts++ !== 5) {
+      if(this.attempts++ !== 5) {
         this.emit("error", err);
         return this.connect();
       }
@@ -120,7 +123,7 @@ class Client extends EventEmitter {
     this.shards.forEach(shard => {
       shard.updateStatus(data);
     });
-    return Promise.resolve(data);
+    return Promise.resolve();
   }
   deleteMessage(channelID, message) {
     if(channelID.id) {

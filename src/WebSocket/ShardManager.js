@@ -11,14 +11,27 @@ class ShardManager extends Collection {
     this.lastConnect = 0;
   }
   spawn(shard) {
-    const s = new Shard(this.client);
+    const s = new Shard(this.client, shard);
+    s.on("ready", () => {
+      this.client.emit("shardReady", s.id);
+      this.shardReady++;
+      if(this.shardReady === this.size) {
+        this.client.emit("ready");
+      }
+    }).on("disconnect", () => {
+      this.shardReady--;
+      this.client.emit("shardDisconnect", s.id);
+      if(this.shardReady === 0) {
+        this.emit("disconnect");
+      }
+    }).on("connect", this.client.emit.bind(this.client, "shardConnect"));
     this.set(shard, s);
-    this.connect(shard);
+    this.connect(s);
   }
   connect(shard) {
     if(Date.now() - this.lastConnect > this.client.options.shardSpawnTimeout) {
       this.lastConnect = Date.now();
-      this.get(shard).connect();
+      shard.connect();
     } else {
       this.tryConnect(shard);
     }
