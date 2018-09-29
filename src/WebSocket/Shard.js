@@ -3,7 +3,7 @@
 let EventEmitter = require("events").EventEmitter;
 const Limiter = require("../Util/Limiter.js");
 const WebSocket = require("ws");
-const { OPCodes, GatewayClose, WSError, GATEWAY_VERSION } = require("../Constants.js");
+const { OPCodes, GatewayClose, WSError, GATEWAY_VERSION } = require("../Util/Constants.js");
 let Zlib;
 let Z_SYNC_FLUSH;
 try {
