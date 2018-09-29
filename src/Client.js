@@ -11,6 +11,7 @@ const RequestHandler = require("./Rest/RequestHandler.js");
 const ShardManager = require("./WebSocket/ShardManager.js");
 const TextChannel = require("./Structures/TextChannel.js");
 const VoiceChannel = require("./Structures/VoiceChannel.js");
+const VoiceConnectionManager = require("./Voice/VoiceConnectionManager.js");
 
 let EventEmitter = require("events").EventEmitter;
 
@@ -48,6 +49,7 @@ class Client extends EventEmitter {
     this.guilds = new ClientGuildCollection(this);
     this.users = new ClientUserCollection();
     this.channels = new ClientChannelCollection(this);
+    this.voiceConnections = new VoiceConnectionManager(this);
     this.attempts = 1;
     this.guildShardMap = {};
   }
