@@ -1,7 +1,7 @@
 "use strict";
 
 const Base = require("./Base.js");
-const { DefaultAvatarHashes } = require("../Constants.js");
+const { DefaultAvatarHashes } = require("../Util/Constants.js");
 const { CDN } = require("../Rest/Endpoints.js");
 
 class User extends Base {
