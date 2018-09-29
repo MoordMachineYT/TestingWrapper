@@ -543,6 +543,12 @@ class Shard extends EventEmitter {
     }
     this.emit("debug", val, this.id);
   }
+  emit() {
+    if(["connect", "disconnect"].indexOf(arguments[0] !== -1)) {
+      arguments[0] = "shard" + arguments[0][0].toUpperCase() + arguments[0].slice(1);
+    }
+    this.client.emit.apply(this.client, arguments);
+  }
 }
 
 module.exports = Shard;
