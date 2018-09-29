@@ -35,7 +35,7 @@ class Client extends EventEmitter {
       getAllMembers: false,
       guildCreateTimeout: 200,
       largeThreshold: 250,
-      shardCount: "auto",
+      shardCount: 1,
       shardSpawnTimeout: 5000,
       messageCacheLimit: 100,
       restTimeOffset: 0,
@@ -68,7 +68,7 @@ class Client extends EventEmitter {
         this.emit("debug", `Connecting to Discord with ${this.options.shardCount} shards, however ${data.shards} is recommended`);
       }
       this.gatewayURL = data.url;
-      for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || data.shards); i++) {
+      for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || (this.options.shardCount === "auto" ? data.shards : this.options.shardCount)); i++) {
         this.shards.spawn(i);
       }
     } catch(err) {

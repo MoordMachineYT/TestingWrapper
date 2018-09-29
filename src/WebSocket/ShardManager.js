@@ -24,7 +24,7 @@ class ShardManager extends Collection {
     }
   }
   tryConnect(shard) {
-    setTimeout(this.connect.bind(this), this.client.options.shardSpawnTimeout, shard);
+    setTimeout(this.connect.bind(this, shard), this.client.options.shardSpawnTimeout);
   }
   destroy(shard) {
     this.get(shard).disconnect(false);
