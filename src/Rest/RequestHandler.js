@@ -11,6 +11,8 @@ class RequestHandler {
     this.limits = new Map();
   }
   request(method, path, options = {}) {
+    const e = {};
+    Error.captureStackTrace(e);
     const req = new Request(this.client, method, path, options);
     return new Promise((res, rej) => {
       const cb = () => {
@@ -36,7 +38,8 @@ class RequestHandler {
             return;
           } else if(resp.status >= 500 && resp.status < 600) {
             if(req.retried === true) {
-              return rej(new DiscordRESTError(resp.status === 502 ? "No gateway available" : "Error while processing request", resp.status));
+              resp.json().then(data => rej(new DiscordRESTError(data.message || (resp.status === 502 ? "No gateway available" : "Error while processing request"), data.code || resp.status, e.stack)));
+              return;
             }
             req.retried = true;
             bucket.busy = true;
@@ -46,7 +49,7 @@ class RequestHandler {
             }, 1000);
             return;
           } else {
-            resp.json().then(data => rej(resp.status >= 400 && resp.status < 500 ? new DiscordRESTError(data.message, resp.status) : data));
+            resp.json().then(data => rej(resp.status >= 400 && resp.status < 500 ? new DiscordRESTError(data.message, data.code, e.stack) : data));
           }
         }).catch(err => rej(err));
       };
@@ -60,9 +63,6 @@ class RequestHandler {
       const bucket = this.limits.get(route);
       bucket.queue(cb);
     });
-  }
-  get token() {
-    return this.client.token;
   }
 }
 

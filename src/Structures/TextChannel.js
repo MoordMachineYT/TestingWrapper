@@ -15,15 +15,6 @@ class TextChannel extends GuildChannel {
   send(data) {
     return this._client.sendMessage(this.id, data);
   }
-  sendMessage(content) {
-    return this._client.sendMessage(this.id, { content });
-  }
-  sendEmbed(embed) {
-    return this._client.sendMessage(this.id, { embed });
-  }
-  sendCodeBlock(content) {
-    return this._client.sendCodeBlock(this.id, content);
-  }
 }
 
 module.exports = TextChannel;

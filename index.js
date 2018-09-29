@@ -1,10 +1,8 @@
 "use strict";
 
 const Client = require("./src/Client/Client.js");
-const extend = require("./src/Util/Extend.js");
 
 function Plexi(options) {
-  extend();
   return new Client(options);
 }
 Plexi.Base = require("./src/Structures/Base.js");

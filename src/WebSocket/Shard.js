@@ -2,15 +2,14 @@
 
 let EventEmitter = require("events").EventEmitter;
 const Limiter = require("../Util/Limiter.js");
-const WebSocket = require("./WebSocket.js");
-const { OPCodes, GatewayClose, WSError, GATEWAY_URL } = require("../Constants.js");
+const WebSocket = require("ws");
+const { OPCodes, GatewayClose, WSError, GATEWAY_VERSION } = require("../Constants.js");
 let Zlib;
 let Z_SYNC_FLUSH;
 try {
   Zlib = require("zlib-sync");
   Z_SYNC_FLUSH = Zlib.Z_SYNC_FLUSH;
 } catch(err) { // eslint-disable-line no-empty
-
 }
 
 const ClientUser = require("../Structures/ClientUser.js");
@@ -37,7 +36,8 @@ class Shard extends EventEmitter {
     this.id = id;
 
     this.attempts = 0;
-    this.gateway = GATEWAY_URL;
+
+    this.presence = JSON.parse(JSON.stringify(client.options.presence));
 
     this.reset();
   }
@@ -53,7 +53,7 @@ class Shard extends EventEmitter {
     this.guildCount = null;
 
     this.heartbeat(-1);
-    if(!this.globalqueue && !this.presencequeue) {
+    if(!this.globalqueue || !this.presencequeue) {
       this.globalqueue = new Limiter(120, 60000, 60);
       this.presencequeue = new Limiter(5, 60000, 5);
     } else {
@@ -71,19 +71,18 @@ class Shard extends EventEmitter {
     let packet = {
       token: this.client.token,
       properties: {
-        "os": process.platform,
-        "browser": "plexi",
-        "device": "plexi"
+        os: process.platform,
+        browser: "plexi",
+        device: "plexi"
       },
       compress: false,
       large_threshold: this.client.options.largeThreshold,
-      presence: this.client.options.presence
+      presence: this.client.options.presence,
+      shard: [this.id, this.client.options.shardCount]
     };
     if(packet.presence.status === "idle") {
       packet.presence.since = Date.now();
-    }
-    if(this.client.recShard) {
-      packet.shard = [this.id, this.client.recShard];
+      packet.presence.afk = true;
     }
     this.send({
       "op": OPCodes.IDENTIFY,
@@ -91,26 +90,33 @@ class Shard extends EventEmitter {
     });
   }
   resume() {
-    this.send(WebSocket.pack({
+    this.send({
       op: 6,
       d: {
         token: this.client.token,
         session_id: this.sessionID,
         seq: this.seq
       }
-    }));
+    });
   }
-  setPresence(data) {
+  updateStatus(data) {
     data.afk = data.status === "idle";
     if(data.afk) {
       data.since = Date.now();
     }
+    this.presence = data;
     this.send({
       "op": OPCodes.STATUS_UPDATE,
       "d": data
     });
   }
-  connect(gateway) {
+  updateVoiceStatus(options) {
+    this.send({
+      op: OPCodes.VOICE_STATUS_UPDATE,
+      d: options
+    });
+  }
+  async connect() {
     if(this.ws && this.status !== "disconnected") {
       this.debug(new Error(WSError.EXISTS));
       return;
@@ -120,29 +126,25 @@ class Shard extends EventEmitter {
     }
     this.status = "connecting";
     this.attempts++;
-    if(gateway) {
-      this.gateway = gateway;
-    }
-    this.ws = WebSocket.create(this.gateway, Erlpack ? "etf" : "json", this.client.options.ws);
+    this.ws = new WebSocket(this.client.gatewayURL + `?v=${GATEWAY_VERSION}&encoding=${Erlpack ? "etf" : "json"}${Zlib ? "&compress=zlib-stream" : ""}`);
     this.ws.onopen = this.onOpen.bind(this);
     this.ws.onmessage = this.onMessage.bind(this);
     this.ws.onclose = this.onClose.bind(this);
     this.ws.onerror = this.onError.bind(this);
   }
-  disconnect(rec, err) {
+  async disconnect(rec, err) {
     if(!this.ws) {
       throw new Error(WSError.DOESNT_EXIST);
     }
     this.debug(err);
     this.ws.onclose = undefined;
-    this.emit("disconnect", this.id);
     if(rec) {
-      this.resume();
+      this.ws.terminate();
+      this.connect();
     } else {
-      if(this.status !== "disconnected") {
-        this.ws.close(1000);
-      }
+      this.ws.close(1000);
     }
+    this.emit("disconnect", this.id);
   }
   heartbeat(time) {
     if(time < 0) {
@@ -194,12 +196,13 @@ class Shard extends EventEmitter {
     this.debug(data);
     if(presence) {
       this.presencequeue.queue(() => {
-        this.ws.send(WebSocket.pack(data));
+        this.ws.send((Erlpack !== undefined ? Erlpack.pack : JSON.parse)(data));
       });
+      this.globalqueue.queue(() => {}); // eslint-disable-line no-empty
       return;
     }
     this.globalqueue.queue(() => {
-      this.ws.send(WebSocket.pack(data));
+      this.ws.send((Erlpack !== undefined ? Erlpack.pack : JSON.parse)(data));
     });
   }
   onOpen(event) {
@@ -284,6 +287,7 @@ class Shard extends EventEmitter {
           if (this.listenerCount("hello")) {
             this.emit("hello", packet.d);
           }
+          this._trace = packet.d._trace;
           this.heartbeat(packet.d.heartbeat_interval);
           break;
         }
@@ -387,7 +391,6 @@ class Shard extends EventEmitter {
         }
         const msg = new Message(packet.d, this.client);
         this.client.emit("message", channel.messages.set(msg.id, msg));
-        this.client.channels.set(channel.id, channel); // Caching system doesn't work otherwise
         break;
       }
       case "MESSAGE_DELETE": {
@@ -402,7 +405,6 @@ class Shard extends EventEmitter {
         }
         msg.deleted = true;
         this.client.emit("messageDelete", channel.messages.set(msg.id, msg));
-        this.client.channels.set(channel.id, channel);
         break;
       }
       case "MESSAGE_UPDATE": {
@@ -416,7 +418,6 @@ class Shard extends EventEmitter {
           break;
         }
         this.client.emit("messageUpdate", msg, channel.messages.set(msg.id, msg.update(packet.d)));
-        this.client.channels.set(channel.id, channel);
         break;
       }
       case "READY": {
@@ -428,15 +429,12 @@ class Shard extends EventEmitter {
           this.client.guilds.set(guild.id, new UnavailableGuild(guild));
         }
         this.guildCreateTimeout = setTimeout(() => {
-          if(this.client.options.getAllMembers) {
-            this.getAllMembers();
-          } else {
-            this.emit(ready);
-          }
+          this.emit("ready");
         }, this.client.options.guildCreateTimeout);
         break;
       }
       case "GUILD_CREATE": {
+        this.client.guildShardMap[packet.d.id] = this.id;
         const available = this.client.guilds.has(packet.d.id) ? this.client.guilds.get(packet.d.id).available : true;
         const guild = new Guild(packet.d, this);
         this.client.guilds.set(packet.d.id, guild);
@@ -467,12 +465,14 @@ class Shard extends EventEmitter {
         }
         this.client.guilds.delete(packet.d.id);
         this.client.emit("guildDelete", guild);
+        delete this.client.guildShardMap[packet.d.id];
         break;
       }
       case "GUILD_MEMBERS_CHUNK": {
         let guild = this.client.guilds.get(packet.d.guild_id);
         if(!guild) {
           this.debug(new Error("GUILD_MEMBERS_CHUNK event received but guild not found"));
+          break;
         }
         for(const member of packet.d.members) {
           member.guild = guild;
@@ -482,6 +482,24 @@ class Shard extends EventEmitter {
         if(this.client.guilds.every(g => g.memberCount === g.members.size) && this.status !== "ready") {
           this.emit("ready");
         }
+        break;
+      }
+      case "VOICE_STATE_UPDATE": {
+        if(packet.d.user_id === this.client.user.id) {
+          if(!this.client.voiceConnections.has(packet.d.guild_id)) {
+            this.debug("Unknown voice state update, " + JSON.stringify(packet.d));
+            break;
+          }
+          this.client.voiceConnections.get(packet.d.guild_id).update(packet.d);
+        }
+        break;
+      }
+      case "VOICE_SERVER_UPDATE": {
+        if(!this.client.voiceConnections.has(packet.d.guild_id)) {
+          this.debug("Unknown voice server update received for guild " + packet.d.guild_id);
+        }
+        packet.d.user_id = this.client.user.id;
+        this.client.voiceConnections.get(packet.d.guild_id).connect(packet.d);
         break;
       }
       default: {

@@ -19,19 +19,10 @@ class User extends Base {
     return this;
   }
   send(channelID, data) {
-    return this._client.send(channelID, data);
-  }
-  sendMessage(channelID, content) {
-    return this._client.send(channelID, { content });
-  }
-  sendCodeBlock(channelID, content) {
-    return this._client.sendCodeBlock(channelID, content);
-  }
-  sendEmbed(channelID, embed) {
-    return this._client.send(channelID, { embed });
+    return this._client.sendMessage(channelID, data);
   }
   get mention() {
-    return this.toString();
+    return "<@" + this.id + ">";
   }
   get tag() {
     return this.username + "#" + this.discrim;

@@ -8,23 +8,7 @@ class Base {
     return (this.id / 4194304) + 1420070400000;
   }
   toString() {
-    let str = "";
-    if(this.id) {
-      if(this.username) {
-        str = `<@${this.id}>`;
-      } else if(this.type && this.type !== 1 && this.type !== 3) {
-        str = `<#${this.id}>`;
-      } else if(this.color) {
-        str = `<@&${this.id}>`;
-      } else {
-        str = this.name || this.content || this.id;
-      }
-    } else if(this.username) {
-      str = this.username;
-    } else {
-      str = this.name;
-    }
-    return str;
+    return `[${this.constructor.name}${this.id ? " " + this.id : ""}]`;
   }
   toJSON(s) {
     if(s) {

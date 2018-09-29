@@ -12,13 +12,11 @@ const ShardManager = require("./WebSocket/ShardManager.js");
 const TextChannel = require("./Structures/TextChannel.js");
 const VoiceChannel = require("./Structures/VoiceChannel.js");
 
-
 let EventEmitter = require("events").EventEmitter;
 
 try {
   EventEmitter = require("eventemitter16");
-} catch(err) { // eslint-disable-line no-empty
-}
+} catch(err) {} // eslint-disable-line no-empty
 
 class Client extends EventEmitter {
   constructor(options) {
@@ -40,30 +38,32 @@ class Client extends EventEmitter {
       shardSpawnTimeout: 5000,
       messageCacheLimit: 100,
       restTimeOffset: 0,
-      ws: {}
+      ws: {},
+      voiceConnectionTimeout: 30000
     }, options);
     this.options.shardSpawnTimeout = Math.max(this.options.shardSpawnTimeout, 5000); // Must be at least 5000
-    this.RequestHandler = new RequestHandler(this);
+    this.requestHandler = new RequestHandler(this);
     this.shards = new ShardManager(this);
     this.ready = false;
     this.guilds = new ClientGuildCollection(this);
     this.users = new ClientUserCollection();
     this.channels = new ClientChannelCollection(this);
     this.attempts = 1;
+    this.guildShardMap = {};
   }
   async connect() {
     try {
-      const data = await this.RequestHandler.request("GET", Endpoints.GATEWAY_BOT, {
+      const data = await this.requestHandler.request("GET", Endpoints.GATEWAY_BOT, {
         auth: true
       });
       if(this.options.shardCount === "auto" && !data.shards) {
-        throw new Error("Failed to autoshard due to lack of data from Discord");
+        return new Error("Failed to autoshard due to lack of data from Discord");
       }
       if(this.options.shardCount === "auto") {
         this.options.shardCount = data.shards;
       }
       if(this.options.shardCount < data.shards) {
-        this.onDebug(`Connecting to Discord with ${this.options.shardCount} shards, however ${data.shards} is recommended`);
+        this.emit("debug", `Connecting to Discord with ${this.options.shardCount} shards, however ${data.shards} is recommended`);
       }
       this.gatewayURL = data.url;
       for(let i = this.options.firstShardID || 0; i < (this.options.lastShardID || data.shards); i++) {
@@ -71,16 +71,20 @@ class Client extends EventEmitter {
       }
     } catch(err) {
       if(this.tryReconnect && this.attempts++ !== 5) {
-        this.onError(err);
+        this.emit("error", err);
         return this.connect();
       }
       return err;
     }
   }
-  disconnect(bool) {
+  disconnect(reconnect) {
     return new Promise((res) => {
-      bool ? this.shards.restart() : this.shards.close();
-      res(this);
+      if(reconnect) {
+        this.shards.restart();
+      } else {
+        this.shards.close();
+      }
+      res();
     });
   }
   sendMessage(channelID, data) {
@@ -98,19 +102,13 @@ class Client extends EventEmitter {
         data.content = data.content.replace(/@everyone/g, "@\u200beveryone").replace(/@here/g, "@\u200bhere");
       }
     }
-    return this.RequestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
+    return this.requestHandler.request("post", Endpoints.CHANNEL_MESSAGES(channelID), {
       auth: true,
       files: data.files || [data.file],
       data
     }).then((msg) => new Message(msg, this));
   }
-  sendCodeBlock(channelID, content, language) {
-    return this.sendMessage(channelID, { content: `\`\`\`${language || "js"}\n${content}\n\`\`\``});
-  }
-  sendEmbed(channelID, embed) {
-    return this.sendMessage(channelID, { embed });
-  }
-  setPresence(data) {
+  updateStatus(data) {
     if(!data.status) {
       data.status = this.user.status;
     }
@@ -118,7 +116,7 @@ class Client extends EventEmitter {
       data.game = null;
     }
     this.shards.forEach(shard => {
-      shard.setPresence(data);
+      shard.updateStatus(data);
     });
     return Promise.resolve(data);
   }
@@ -129,7 +127,7 @@ class Client extends EventEmitter {
     if(message.id) {
       message = message.id;
     }
-    return this.RequestHandler.request("delete", Endpoints.CHANNEL_MESSAGE(channelID, message), {
+    return this.requestHandler.request("delete", Endpoints.CHANNEL_MESSAGE(channelID, message), {
       auth: true
     }).then((msg) => {
       msg = this.channels.get(channelID).messages.get(msg.id);
@@ -151,7 +149,7 @@ class Client extends EventEmitter {
       messages = messages.keyArray;
     }
     if(messages.length > 100) {
-      return this.RequestHandler.request("post", Endpoints.CHANNEL_BULK_DELETE(channelID), {
+      return this.requestHandler.request("post", Endpoints.CHANNEL_BULK_DELETE(channelID), {
         auth: true,
         data: {
           messages: messages.splice(0, 100)
@@ -159,7 +157,7 @@ class Client extends EventEmitter {
       }).then(() => this.deleteMessages(channelID, messages));
     }
     return new Promise((res, rej) => {
-      this.RequestHandler.request("post", Endpoints.CHANNEL_BULK_DELETE(channelID), {
+      this.requestHandler.request("post", Endpoints.CHANNEL_BULK_DELETE(channelID), {
         auth: true,
         data: { messages }
       }).then(() => res()).catch((err) => rej(err));
@@ -167,7 +165,7 @@ class Client extends EventEmitter {
   }
   getGuildChannels(guild) {
     guild = guild.id || guild;
-    return this.RequestHandler.request("get", Endpoints.GUILD_CHANNELS(guild), {
+    return this.requestHandler.request("get", Endpoints.GUILD_CHANNELS(guild), {
       auth: true
     }).then(channels => channels.map(channel => {
       if(channel.type === 0) {

@@ -4,10 +4,8 @@ const Base = require("./Base.js");
 const CategoryChannel = require("./CategoryChannel.js");
 const { CDN } = require("../Rest/Endpoints.js");
 const Collection = require("../Util/Collection.js");
-const Message = require("./Message.js");
 const Member = require("./Member.js");
 const Role = require("./Role.js");
-const User = require("./User.js");
 const VoiceChannel = require("./VoiceChannel.js");
 const TextChannel = require("./TextChannel.js");
 
@@ -33,21 +31,21 @@ class Guild extends Base {
     this.memberCount = data.member_count;
     this.joinedAt = Date.parse(data.joined_at);
     this.features = data.features;
-    this.roles = new Collection();
+    this.roles = new Collection("Role");
 
     for(const r of data.roles) {
       r.guild = this;
       this.roles.set(r.id, new Role(r));
     }
 
-    this.members = new Collection();
+    this.members = new Collection("Member");
 
     for(const member of data.members) {
       member.guild = this;
       this.members.set(member.user.id, new Member(member, shard.client));
     }
     
-    this.channels = new Collection();
+    this.channels = new Collection("GuildChannel");
     for(const channel of data.channels) {
       if(channel.type === 0) {
         this._client.channels.set(channel.id, this.channels.set(channel.id, new TextChannel(channel, this)));
@@ -70,18 +68,6 @@ class Guild extends Base {
     for(const member of data.members) {
       this.members.get(member.user.id).update(member);
     }
-  }
-  member(resolvable) {
-    if(resolvable instanceof Message) {
-      return this.members.get(resolvable.author.id);
-    }
-    if(resolvable instanceof Member || resolvable instanceof User) {
-      return this.members.get(resolvable.id);
-    }
-    if(resolvable) {
-      return this.members.get(resolvable);
-    }
-    return this.owner;
   }
   get owner() {
     return this.members.get(this.ownerID);

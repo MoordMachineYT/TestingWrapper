@@ -17,13 +17,13 @@ class Message extends Base {
     this.timestamp = data.timestamp;
     this.editedTimestamp = data.editedTimestamp || null;
     this.mentionEveryone = data.mention_everyone;
-    if(data.author) {
-      this.sender = this._client.users.get(data.author.id) || this._client.users.set(data.author.id, new User(data.author));
+    if(data.author) { // For some reason this may be null
+      this.sender = this._client.users.get(data.author.id) || this._client.users.set(new User(data.author));
     } else {
       this.sender = {};
     }
     this.channel = this._client.channels.get(data.channel_id);
-    this.member = this.channel.guild && this.sender.id ? this.channel.guild.member(this.sender.id) || this.channel.guild.members.set(this.sender.id, new Member(data.member, client)) : null;
+    this.member = this.channel.guild && this.sender.id ? this.channel.guild.members.get(this.sender.id) || this.channel.guild.members.set(this.sender.id, new Member(client)) : null;
     this.webhookID = data.webhook_id || null;
     this.deleted = false;
     this.embeds = data.embeds;
@@ -37,21 +37,21 @@ class Message extends Base {
     this.attachments = data.hasOwnProperty("attachments") ? data.attachments : this.attachments;
     this.editedTimestamp = data.editedTimestamp || this.editedTimestamp;
     this.mentionEveryone = data.hasOwnProperty("mention_everyone") ? data.mention_everyone : this.mentionEveryone;
-    this.getMentions(data);
-    this.getChannelMentions();
+    this._getMentions(data);
+    this._getChannelMentions();
     return this;
   }
-  getMentions(data) {
+  _getMentions(data) {
     if(!data.mentions) {
       return this.getRoleMentions(data);
     }
     this.mentions = new Collection();
     for(const mention of data.mentions) {
-      this.mentions.set(mention.id, this._client.users.get(mention.id) || this._client.users.set(mention.id, new User(mention)));
+      this.mentions.set(mention.id, this._client.users.get(mention.id) || this._client.users.set(new User(mention)));
     }
     this.getRoleMentions(data);
   }
-  getChannelMentions() {
+  _getChannelMentions() {
     this.channelMentions = new Collection();
     var matches;
     if(this.content) {
@@ -63,7 +63,7 @@ class Message extends Base {
       }
     }
   }
-  getRoleMentions(data) {
+  _getRoleMentions(data) {
     if(!data.mention_roles) {
       return;
     }

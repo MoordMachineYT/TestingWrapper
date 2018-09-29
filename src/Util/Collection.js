@@ -7,6 +7,10 @@ class Collection extends Map {
     this.limit = limit || Infinity;
   }
   set(key, val) {
+    if(!key) {
+      val = key;
+      key = val.id;
+    }
     while(this.size > this.limit) {
       super.delete(this.firstKey);
     }
@@ -175,28 +179,28 @@ class Collection extends Map {
     return `Collection${this.base ? `<${this.base}>` : ""}`;
   }
   get first() {
-    return this.array[0];
+    return this.values().next().value;
   }
   get firstKey() {
-    return this.keyArray[0];
+    return this.keys().next().value;
   }
   get last() {
-    return this.array[this.size - 1];
+    return Array.from(this.values())[this.size - 1];
   }
   get lastKey() {
-    return this.keyArray[this.size - 1];
+    return Array.from(this.keys())[this.size - 1];
   }
   get random() {
-    return this.array.random();
+    return Array.from(this.values())[~~(Math.random()*this.size)];
   }
   get randomKey() {
-    return this.keyArray.random();
+    return Array.from(this.keys())[~~(Math.random()*this.size)];
   }
   get array() {
-    return this.values().array();
+    return Array.from(this.values());
   }
   get keyArray() {
-    return this.keys().array();
+    return Array.from(this.keys());
   }
 }
 
