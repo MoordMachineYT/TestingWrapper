@@ -1,7 +1,7 @@
 "use strict";
 
 const Base = require("./Base.js");
-const { ChannelType } = require("../Constants.js");
+const { ChannelType } = require("../Util/Constants.js");
 
 class Channel extends Base {
   constructor(data, client) {
